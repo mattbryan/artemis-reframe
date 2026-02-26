@@ -1,0 +1,48 @@
+import type { ElementalAsset } from "@/types/asset";
+
+export const elementalAssetsFixture: ElementalAsset[] = [
+  {
+    id: "ea-1",
+    type: "elemental",
+    title: "office-building.jpg",
+    assetType: "photography",
+    url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400",
+    tags: ["hero-image"],
+    schema_version: "1.0",
+    created_at: "2024-01-13T09:00:00Z",
+    metadata: { resolution: "1920x1080" },
+  },
+  {
+    id: "ea-2",
+    type: "elemental",
+    title: "floor-plan-icon.svg",
+    assetType: "icons",
+    url: undefined,
+    tags: [],
+    schema_version: "1.0",
+    created_at: "2024-01-12T11:00:00Z",
+    metadata: {},
+  },
+  {
+    id: "ea-3",
+    type: "elemental",
+    title: "illustration-hero.png",
+    assetType: "illustrations",
+    url: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=400",
+    tags: [],
+    schema_version: "1.0",
+    created_at: "2024-01-15T14:00:00Z",
+    metadata: {},
+  },
+  {
+    id: "ea-4",
+    type: "elemental",
+    title: "abstract-shape.psd",
+    assetType: "other-design-elements",
+    url: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=400",
+    tags: [],
+    schema_version: "1.0",
+    created_at: "2024-01-10T08:00:00Z",
+    metadata: {},
+  },
+];
