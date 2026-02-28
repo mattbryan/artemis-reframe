@@ -34,11 +34,13 @@ function mapBrief(b: {
   description?: string;
   usageGuidelines?: string;
   collateralType?: string;
+  collateralTypeIds?: string[];
   status?: string;
   createdAt?: number;
   updatedAt?: number;
   isDefault?: boolean;
 }): Brief {
+  const ids = b.collateralTypeIds;
   return {
     id: b.id,
     name: b.name ?? "",
@@ -46,6 +48,7 @@ function mapBrief(b: {
     description: b.description ?? "",
     usageGuidelines: b.usageGuidelines ?? "",
     collateralType: b.collateralType ?? "",
+    collateralTypeIds: Array.isArray(ids) ? ids : undefined,
     status: (b.status ?? "draft") as Brief["status"],
     createdAt: typeof b.createdAt === "number" ? b.createdAt : 0,
     updatedAt: typeof b.updatedAt === "number" ? b.updatedAt : 0,

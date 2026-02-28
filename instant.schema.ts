@@ -97,7 +97,9 @@ const _schema = i.schema({
       slug: i.string().unique().indexed(),
       description: i.string(),
       usageGuidelines: i.string(),
-      collateralType: i.string(),
+      collateralType: i.string(), // legacy display; prefer collateralTypeIds
+      /** IDs of collateral types this brief applies to (multi-select). */
+      collateralTypeIds: i.json().optional(), // string[]
       status: i.string(), // "draft" | "active" | "archived"
       createdAt: i.number(),
       updatedAt: i.number(),
@@ -258,6 +260,22 @@ const _schema = i.schema({
       name: i.string(),
       fieldValues: i.string(), // JSON object { [fieldDefId]: string | boolean }
       isActive: i.boolean(),
+      createdAt: i.number(),
+      updatedAt: i.number(),
+    }),
+
+    /** Workbench project — one per wizard run; status draft | generating | complete | failed. */
+    project: i.entity({
+      name: i.string(),
+      status: i.string(), // "draft" | "generating" | "complete" | "failed"
+      collateralTypeId: i.string(),
+      collateralTypeSlug: i.string(),
+      formData: i.json(), // { [globalFieldId]: string | boolean | number }
+      sectionData: i.json(), // { [sectionId]: { [fieldDefId]: string | boolean | number } }
+      images: i.json(), // ProjectImage[]
+      outputTargetAssignments: i.json(), // { [targetType]: briefId }
+      generationLog: i.json(), // string[]
+      errorMessage: i.string().optional(),
       createdAt: i.number(),
       updatedAt: i.number(),
     }),

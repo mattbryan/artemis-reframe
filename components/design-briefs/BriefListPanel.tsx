@@ -3,16 +3,19 @@
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { useBriefs } from "@/lib/hooks/useBriefs";
+import { useCollateralTypes } from "@/lib/hooks/useCollateralTypes";
 import { useBriefStore } from "@/store/briefStore";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { BriefListItem } from "./BriefListItem";
+import { formatBriefCollateralTypes } from "@/lib/briefUtils";
 import { cn } from "@/lib/utils";
 
 export function BriefListPanel() {
   const pathname = usePathname();
   const { data: briefs, isLoading, error } = useBriefs();
+  const { data: collateralTypes } = useCollateralTypes();
   const searchQuery = useBriefStore((s) => s.searchQuery);
   const setSearchQuery = useBriefStore((s) => s.setSearchQuery);
   const activeBriefId = useBriefStore((s) => s.activeBriefId);
@@ -23,12 +26,12 @@ export function BriefListPanel() {
     if (!q) return briefs;
     return briefs.filter((b) => {
       const name = (b.name ?? "").toLowerCase();
-      const type = (b.collateralType ?? "").toLowerCase();
+      const typeLabel = formatBriefCollateralTypes(b, collateralTypes).toLowerCase();
       const tags = b.meta?.tags ?? "";
       const tagStr = (typeof tags === "string" ? tags : "").toLowerCase();
-      return name.includes(q) || type.includes(q) || tagStr.includes(q);
+      return name.includes(q) || typeLabel.includes(q) || tagStr.includes(q);
     });
-  }, [briefs, searchQuery]);
+  }, [briefs, searchQuery, collateralTypes]);
 
   const currentSlug = pathname?.startsWith("/design-briefs/")
     ? pathname.split("/").filter(Boolean)[1]

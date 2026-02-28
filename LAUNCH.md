@@ -32,3 +32,8 @@ npx instant-cli@latest login
 npx instant-cli@latest push schema
 npx instant-cli@latest push perms
 ```
+
+To kill port
+```
+kill -9 $(lsof -t -i :3000)
+```

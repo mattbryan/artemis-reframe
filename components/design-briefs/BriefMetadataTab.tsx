@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { ExternalLink } from "lucide-react";
+import { db } from "@/lib/db";
 import { useActiveBrief } from "@/lib/hooks/useActiveBrief";
 import { useTags } from "@/lib/hooks/useTags";
 import { updateBrief } from "@/lib/mutations/briefs";
@@ -9,6 +10,7 @@ import { upsertBriefMeta } from "@/lib/mutations/briefMeta";
 import { formatTagDisplay } from "@/types/tag";
 import type { Tag } from "@/types/tag";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 function TagInput({
   value,
@@ -181,7 +183,20 @@ export function BriefMetadataTab() {
   );
   const [figmaFileUrl, setFigmaFileUrl] = useState(meta?.figmaFileUrl ?? "");
   const [tags, setTags] = useState<string[]>(parseTags(meta?.tags ?? ""));
-  const [collateralType, setCollateralType] = useState(brief?.collateralType ?? "");
+  const [collateralTypeIds, setCollateralTypeIds] = useState<string[]>(
+    Array.isArray(brief?.collateralTypeIds) ? brief.collateralTypeIds : []
+  );
+
+  const { data: ctData } = db.useQuery({
+    collateralType: { $: { where: { isArchived: false } } },
+  });
+  const collateralTypes = useMemo(() => {
+    const raw = ctData?.collateralType ?? [];
+    const list = Array.isArray(raw) ? raw : Object.values(raw as Record<string, unknown>);
+    return (list as { id: string; name: string; slug: string }[])
+      .filter((t) => t && t.id)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [ctData]);
 
   useEffect(() => {
     if (meta) {
@@ -193,7 +208,7 @@ export function BriefMetadataTab() {
   }, [meta]);
 
   useEffect(() => {
-    if (brief) setCollateralType(brief.collateralType ?? "");
+    if (brief && Array.isArray(brief.collateralTypeIds)) setCollateralTypeIds(brief.collateralTypeIds);
   }, [brief]);
 
   const showSaved = useCallback(() => {
@@ -216,10 +231,14 @@ export function BriefMetadataTab() {
     ).then(showSaved);
   }, [brief, meta?.id, targetAudience, collateralExamples, figmaFileUrl, tags, showSaved]);
 
-  const handleCollateralTypeBlur = useCallback(() => {
-    if (!brief || collateralType === brief.collateralType) return;
-    updateBrief(brief.id, { collateralType }).then(showSaved);
-  }, [brief, collateralType, showSaved]);
+  const handleCollateralTypeIdsChange = useCallback(
+    (ids: string[]) => {
+      setCollateralTypeIds(ids);
+      if (!brief) return;
+      updateBrief(brief.id, { collateralTypeIds: ids }).then(showSaved);
+    },
+    [brief, showSaved]
+  );
 
   if (!brief) return null;
 
@@ -311,14 +330,42 @@ export function BriefMetadataTab() {
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
-          Collateral Type
+          Collateral Types
         </label>
-        <Input
-          value={collateralType}
-          onChange={(e) => setCollateralType(e.target.value)}
-          onBlur={handleCollateralTypeBlur}
-          placeholder="e.g. Offering Memorandum, Flyer, BOV"
-        />
+        <p className="mb-2 text-xs text-muted-foreground">
+          Select the collateral types this brief applies to. Only these will appear in the Workbench for the selected type.
+        </p>
+        <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border border-input bg-background p-3">
+          {collateralTypes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No collateral types defined.</p>
+          ) : (
+            collateralTypes.map((ct) => {
+              const checked = collateralTypeIds.includes(ct.id);
+              return (
+                <label
+                  key={ct.id}
+                  className={cn(
+                    "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent/50",
+                    checked && "bg-accent/30"
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => {
+                      const next = checked
+                        ? collateralTypeIds.filter((id) => id !== ct.id)
+                        : [...collateralTypeIds, ct.id];
+                      handleCollateralTypeIdsChange(next);
+                    }}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  <span>{ct.name}</span>
+                </label>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

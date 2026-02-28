@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { updateBrief } from "@/lib/mutations/briefs";
+import { useCollateralTypes } from "@/lib/hooks/useCollateralTypes";
+import { formatBriefCollateralTypes } from "@/lib/briefUtils";
 import { BriefStatusDropdown } from "./BriefStatusDropdown";
 import type { Brief } from "@/types/brief";
 
@@ -12,8 +14,10 @@ export function BriefDetailHeader({
   brief: Brief;
   lastUpdated: string;
 }) {
+  const { data: collateralTypes } = useCollateralTypes();
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState(brief.name);
+  const typeLabel = formatBriefCollateralTypes(brief, collateralTypes);
 
   useEffect(() => {
     setName(brief.name);
@@ -52,7 +56,7 @@ export function BriefDetailHeader({
         )}
         <span className="text-muted-foreground">·</span>
         <span className="text-sm text-muted-foreground">
-          {brief.collateralType || "—"}
+          {typeLabel}
         </span>
         <BriefStatusDropdown
           status={brief.status}

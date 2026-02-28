@@ -19,7 +19,10 @@ export interface Brief {
   slug: string;
   description: string;
   usageGuidelines: string;
+  /** @deprecated Prefer collateralTypeIds. */
   collateralType: string;
+  /** IDs of collateral types this brief applies to. */
+  collateralTypeIds?: string[];
   status: BriefStatus;
   createdAt: number;
   updatedAt: number;

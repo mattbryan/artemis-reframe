@@ -19,19 +19,24 @@ export function useBriefs(): {
 
   const briefs = useMemo(() => {
     const rows = data?.brief ?? [];
-    const mapped = rows.map((b) => ({
-      id: b.id,
-      name: b.name ?? "",
-      slug: b.slug ?? "",
-      description: b.description ?? "",
-      usageGuidelines: b.usageGuidelines ?? "",
-      collateralType: b.collateralType ?? "",
-      status: (b.status ?? "draft") as Brief["status"],
-      createdAt: typeof b.createdAt === "number" ? b.createdAt : 0,
-      updatedAt: typeof b.updatedAt === "number" ? b.updatedAt : 0,
-      isDefault: Boolean(b.isDefault),
-      meta: b.meta ? { tags: (b.meta as { tags?: string }).tags ?? "" } : undefined,
-    }));
+    const list = Array.isArray(rows) ? rows : Object.values(rows as Record<string, unknown>);
+    const mapped = (list as Record<string, unknown>[]).map((b) => {
+      const ids = b.collateralTypeIds as string[] | undefined;
+      return {
+        id: b.id,
+        name: b.name ?? "",
+        slug: b.slug ?? "",
+        description: b.description ?? "",
+        usageGuidelines: b.usageGuidelines ?? "",
+        collateralType: b.collateralType ?? "",
+        collateralTypeIds: Array.isArray(ids) ? ids : [],
+        status: (b.status ?? "draft") as Brief["status"],
+        createdAt: typeof b.createdAt === "number" ? b.createdAt : 0,
+        updatedAt: typeof b.updatedAt === "number" ? b.updatedAt : 0,
+        isDefault: Boolean(b.isDefault),
+        meta: b.meta ? { tags: (b.meta as { tags?: string }).tags ?? "" } : undefined,
+      };
+    });
     return mapped.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
   }, [data]);
 

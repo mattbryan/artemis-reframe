@@ -81,6 +81,17 @@ export const OUTPUT_TARGET_LABELS: Record<string, string> = {
   "email-html": "Email",
 };
 
+/** Human-readable label for generation log and progress UI (spec: Print PDF, Web HTML, etc.). */
+export function formatTargetType(targetType: string): string {
+  const map: Record<string, string> = {
+    "print-pdf": "Print PDF",
+    "web-html": "Web HTML",
+    "social-image": "Social Image",
+    "email-html": "Email HTML",
+  };
+  return map[targetType] ?? targetType;
+}
+
 export const OUTPUT_TARGET_BADGE_CLASS: Record<string, string> = {
   "print-pdf": "bg-slate-700 text-slate-100 dark:bg-slate-600 dark:text-slate-100",
   "web-html": "bg-blue-500/20 text-blue-700 dark:text-blue-400",

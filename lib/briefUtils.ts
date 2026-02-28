@@ -36,6 +36,24 @@ export function getDefaultBrief<T extends { isDefault?: boolean }>(briefs: T[]):
   return briefs.find((b) => b.isDefault === true);
 }
 
+/**
+ * Human-readable label for a brief's collateral types (for list/header display).
+ * Uses collateralTypeIds + type list when available; falls back to legacy collateralType string.
+ */
+export function formatBriefCollateralTypes(
+  brief: { collateralTypeIds?: string[]; collateralType?: string },
+  types: { id: string; name: string }[]
+): string {
+  const ids = brief.collateralTypeIds;
+  if (Array.isArray(ids) && ids.length > 0 && types.length > 0) {
+    const names = ids
+      .map((id) => types.find((t) => t.id === id)?.name)
+      .filter(Boolean) as string[];
+    if (names.length > 0) return names.join(", ");
+  }
+  return (brief.collateralType ?? "").trim() || "—";
+}
+
 export const BRIEF_SECTION_TYPES = [
   "tokens",
   "component-spec",

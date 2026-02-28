@@ -1,21 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { db } from "@/lib/db";
 import { createBrief } from "@/lib/mutations/briefs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { BriefStatus } from "@/types/brief";
+import { cn } from "@/lib/utils";
 
 export default function NewBriefPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [usageGuidelines, setUsageGuidelines] = useState("");
-  const [collateralType, setCollateralType] = useState("");
+  const [collateralTypeIds, setCollateralTypeIds] = useState<string[]>([]);
   const [status, setStatus] = useState<BriefStatus>("draft");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: ctData } = db.useQuery({
+    collateralType: { $: { where: { isArchived: false } } },
+  });
+  const collateralTypes = useMemo(() => {
+    const raw = ctData?.collateralType ?? [];
+    const list = Array.isArray(raw) ? raw : Object.values(raw as Record<string, unknown>);
+    return (list as { id: string; name: string }[])
+      .filter((t) => t && t.id)
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  }, [ctData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +40,7 @@ export default function NewBriefPage() {
         name: name.trim(),
         description: description.trim(),
         usageGuidelines: usageGuidelines.trim(),
-        collateralType: collateralType.trim(),
+        collateralTypeIds: collateralTypeIds.length > 0 ? collateralTypeIds : undefined,
         status,
       });
       router.push(`/design-briefs/${slug}`);
@@ -82,13 +95,41 @@ export default function NewBriefPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">
-            Collateral Type
+            Collateral Types
           </label>
-          <Input
-            value={collateralType}
-            onChange={(e) => setCollateralType(e.target.value)}
-            placeholder="e.g. Offering Memorandum, Flyer"
-          />
+          <p className="mb-2 text-xs text-muted-foreground">
+            Select which collateral types this brief applies to. It will appear in the Workbench when building those types.
+          </p>
+          <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border border-input bg-background p-3">
+            {collateralTypes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No collateral types defined.</p>
+            ) : (
+              collateralTypes.map((ct) => {
+                const checked = collateralTypeIds.includes(ct.id);
+                return (
+                  <label
+                    key={ct.id}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent/50",
+                      checked && "bg-accent/30"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        setCollateralTypeIds((prev) =>
+                          checked ? prev.filter((id) => id !== ct.id) : [...prev, ct.id]
+                        );
+                      }}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <span>{ct.name}</span>
+                  </label>
+                );
+              })
+            )}
+          </div>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground">

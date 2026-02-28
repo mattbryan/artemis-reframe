@@ -18,6 +18,8 @@ import {
   archiveBrief,
   deleteBrief,
 } from "@/lib/mutations/briefs";
+import { useCollateralTypes } from "@/lib/hooks/useCollateralTypes";
+import { formatBriefCollateralTypes } from "@/lib/briefUtils";
 import type { Brief } from "@/types/brief";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +31,8 @@ interface BriefListItemProps {
 export function BriefListItem({ brief, isActive }: BriefListItemProps) {
   const router = useRouter();
   const setActiveBriefId = useBriefStore((s) => s.setActiveBriefId);
+  const { data: collateralTypes } = useCollateralTypes();
+  const typeLabel = formatBriefCollateralTypes(brief, collateralTypes);
 
   const handleSelect = () => {
     setActiveBriefId(brief.id);
@@ -90,7 +94,7 @@ export function BriefListItem({ brief, isActive }: BriefListItemProps) {
           <span className="truncate font-medium text-foreground">{brief.name}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="truncate">{brief.collateralType || "—"}</span>
+          <span className="truncate">{typeLabel}</span>
           <BriefStatusBadge status={brief.status} />
         </div>
       </Link>

@@ -14,6 +14,7 @@ export async function createBrief(params: {
   description?: string;
   usageGuidelines?: string;
   collateralType?: string;
+  collateralTypeIds?: string[];
   status?: BriefStatus;
 }): Promise<string> {
   const briefId = id();
@@ -26,19 +27,20 @@ export async function createBrief(params: {
     : (Object.values(allBriefs) as { slug?: string }[]).map((b) => b.slug ?? "");
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
 
-  await db.transact(
-    db.tx.brief[briefId].update({
-      name: params.name,
-      slug,
-      description: params.description ?? "",
-      usageGuidelines: params.usageGuidelines ?? "",
-      collateralType: params.collateralType ?? "",
-      status: params.status ?? "draft",
-      createdAt: now,
-      updatedAt: now,
-      isDefault: false,
-    })
-  );
+  const payload: Record<string, unknown> = {
+    name: params.name,
+    slug,
+    description: params.description ?? "",
+    usageGuidelines: params.usageGuidelines ?? "",
+    collateralType: params.collateralType ?? "",
+    status: params.status ?? "draft",
+    createdAt: now,
+    updatedAt: now,
+    isDefault: false,
+  };
+  if (params.collateralTypeIds != null) payload.collateralTypeIds = params.collateralTypeIds;
+
+  await db.transact(db.tx.brief[briefId].update(payload));
   return slug;
 }
 
@@ -49,14 +51,16 @@ export async function updateBrief(
     description: string;
     usageGuidelines: string;
     collateralType: string;
+    collateralTypeIds: string[];
     status: BriefStatus;
   }>
 ): Promise<void> {
-  const payload: Record<string, unknown> = { ...updates, updatedAt: Date.now() };
+  const payload: Record<string, unknown> = { updatedAt: Date.now() };
   if (updates.name != null) payload.name = updates.name;
   if (updates.description != null) payload.description = updates.description;
   if (updates.usageGuidelines != null) payload.usageGuidelines = updates.usageGuidelines;
   if (updates.collateralType != null) payload.collateralType = updates.collateralType;
+  if (updates.collateralTypeIds != null) payload.collateralTypeIds = updates.collateralTypeIds;
   if (updates.status != null) payload.status = updates.status;
   await db.transact(db.tx.brief[briefId].update(payload));
 }
@@ -112,6 +116,7 @@ export async function duplicateBrief(briefId: string): Promise<string> {
     description?: string;
     usageGuidelines?: string;
     collateralType?: string;
+    collateralTypeIds?: string[];
     sections?: { id: string; type?: string; body?: string; order?: number }[];
     screenshots?: { id: string; url?: string; caption?: string; sectionId?: string | null; order?: number }[];
     meta?: { id: string; targetAudience?: string; collateralExamples?: string; figmaFileUrl?: string; tags?: string };
@@ -127,19 +132,20 @@ export async function duplicateBrief(briefId: string): Promise<string> {
   const baseSlug = slugify((source.name ?? "Copy") + " copy");
   const slug = ensureUniqueSlug(baseSlug, existingSlugs);
 
-  const ops: unknown[] = [
-    db.tx.brief[newId].update({
-      name: (source.name ?? "") + " (copy)",
-      slug,
-      description: source.description ?? "",
-      usageGuidelines: source.usageGuidelines ?? "",
-      collateralType: source.collateralType ?? "",
-      status: "draft",
-      createdAt: now,
-      updatedAt: now,
-      isDefault: false,
-    }),
-  ];
+  const briefPayload: Record<string, unknown> = {
+    name: (source.name ?? "") + " (copy)",
+    slug,
+    description: source.description ?? "",
+    usageGuidelines: source.usageGuidelines ?? "",
+    collateralType: source.collateralType ?? "",
+    status: "draft",
+    createdAt: now,
+    updatedAt: now,
+    isDefault: false,
+  };
+  if (source.collateralTypeIds != null) briefPayload.collateralTypeIds = source.collateralTypeIds;
+
+  const ops: unknown[] = [db.tx.brief[newId].update(briefPayload)];
   const sections = source.sections ?? [];
   const sectionIdMap: Record<string, string> = {};
   sections.forEach((s: { id: string; type?: string; body?: string; order?: number }) => {
