@@ -20,15 +20,15 @@ export function useBriefs(): {
   const briefs = useMemo(() => {
     const rows = data?.brief ?? [];
     const list = Array.isArray(rows) ? rows : Object.values(rows as Record<string, unknown>);
-    const mapped = (list as Record<string, unknown>[]).map((b) => {
+    const mapped = (list as Record<string, unknown>[]).map((b): Brief & { meta?: { tags?: string } } => {
       const ids = b.collateralTypeIds as string[] | undefined;
       return {
-        id: b.id,
-        name: b.name ?? "",
-        slug: b.slug ?? "",
-        description: b.description ?? "",
-        usageGuidelines: b.usageGuidelines ?? "",
-        collateralType: b.collateralType ?? "",
+        id: String(b.id ?? ""),
+        name: String(b.name ?? ""),
+        slug: String(b.slug ?? ""),
+        description: String(b.description ?? ""),
+        usageGuidelines: String(b.usageGuidelines ?? ""),
+        collateralType: String(b.collateralType ?? ""),
         collateralTypeIds: Array.isArray(ids) ? ids : [],
         status: (b.status ?? "draft") as Brief["status"],
         createdAt: typeof b.createdAt === "number" ? b.createdAt : 0,

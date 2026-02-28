@@ -16,7 +16,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { WizardShell } from "./wizard/WizardShell";
 import { useWizardStore } from "@/store/wizardStore";
 import { useCollateralType } from "@/lib/hooks/useCollateralType";
-import { formatTargetType } from "@/lib/collateralTypeUtils";
 import type { Project } from "@/types/project";
 
 function inferDraftStep(project: {
@@ -71,6 +70,8 @@ export default function WorkbenchPage() {
 
   const hydrateFromDraft = useWizardStore((s) => s.hydrateFromDraft);
   const reset = useWizardStore((s) => s.reset);
+  const setDraftProjectId = useWizardStore((s) => s.setDraftProjectId);
+  const setDraftCreatedAt = useWizardStore((s) => s.setDraftCreatedAt);
 
   useEffect(() => {
     if (!resumingProject || !collateralTypeToResume) return;
@@ -96,25 +97,31 @@ export default function WorkbenchPage() {
 
   const onSaveDraft = async () => {
     const store = useWizardStore.getState();
-    const ct = store.selectedCollateralType;
-    if (!ct) return;
     const projectId = store.draftProjectId ?? id();
-    await db.transact([
-      db.tx.project[projectId].update({
-        name: store.projectName,
-        status: "draft",
-        collateralTypeId: ct.id,
-        collateralTypeSlug: ct.slug,
-        formData: store.formData,
-        sectionData: store.sectionData,
-        images: store.images,
-        outputTargetAssignments: store.outputTargetAssignments,
-        generationLog: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }),
-    ]);
-    store.setDraftProjectId(projectId);
+    const ct = store.selectedCollateralType;
+    const now = Date.now();
+    const createdAt = store.draftCreatedAt ?? now;
+    try {
+      await db.transact([
+        db.tx.project[projectId].update({
+          name: store.projectName,
+          status: "draft",
+          collateralTypeId: ct?.id ?? "",
+          collateralTypeSlug: ct?.slug ?? "",
+          formData: store.formData,
+          sectionData: store.sectionData,
+          images: store.images,
+          outputTargetAssignments: store.outputTargetAssignments,
+          generationLog: [],
+          createdAt,
+          updatedAt: now,
+        }),
+      ]);
+      store.setDraftProjectId(projectId);
+      if (!store.draftCreatedAt) store.setDraftCreatedAt(createdAt);
+    } catch (e) {
+      console.error("Save draft failed:", e);
+    }
   };
 
   const onGenerate = async () => {
@@ -122,57 +129,68 @@ export default function WorkbenchPage() {
     const ct = store.selectedCollateralType;
     if (!ct) return;
     const projectId = store.draftProjectId ?? id();
-
-    await db.transact([
-      db.tx.project[projectId].update({
-        name: store.projectName,
-        status: "generating",
-        collateralTypeId: ct.id,
-        collateralTypeSlug: ct.slug,
-        formData: store.formData,
-        sectionData: store.sectionData,
-        images: store.images,
-        outputTargetAssignments: store.outputTargetAssignments,
-        generationLog: [],
-        createdAt: store.draftProjectId ? undefined : Date.now(),
-        updatedAt: Date.now(),
-      }),
-    ]);
+    const now = Date.now();
+    try {
+      await db.transact([
+        db.tx.project[projectId].update({
+          name: store.projectName,
+          status: "generating",
+          collateralTypeId: ct.id,
+          collateralTypeSlug: ct.slug,
+          formData: store.formData,
+          sectionData: store.sectionData,
+          images: store.images,
+          outputTargetAssignments: store.outputTargetAssignments,
+          generationLog: [],
+          createdAt: now,
+          updatedAt: now,
+        }),
+      ]);
+    } catch (e) {
+      console.error("Generate: InstantDB update failed", e);
+      return;
+    }
 
     router.push(`/workbench/${projectId}`);
 
-    const steps = [
-      "Reading your brand guidelines...",
-      "Reviewing policies and rules...",
-      ...Object.keys(store.outputTargetAssignments).flatMap((t) => [
-        `Reviewing design brief for ${formatTargetType(t)}...`,
-        `Drafting content for ${formatTargetType(t)}...`,
-        `Assembling ${formatTargetType(t)}...`,
-      ]),
-      "Finalizing your collateral...",
-    ];
-
-    for (let i = 0; i < steps.length; i++) {
-      await new Promise((r) => setTimeout(r, 1200));
-      await db.transact([
-        db.tx.project[projectId].update({
-          generationLog: steps.slice(0, i + 1),
-          updatedAt: Date.now(),
-        }),
-      ]);
-    }
-
-    await db.transact([
-      db.tx.project[projectId].update({
-        status: "complete",
-        updatedAt: Date.now(),
-      }),
-    ]);
+    fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId }),
+    }).catch((err) => {
+      console.error("Generation request failed to send:", err);
+    });
   };
 
   const onCancel = () => {
     reset();
     setShowWizard(false);
+    setStepValid(false);
+  };
+
+  /** Create a new draft project in the DB and open the wizard. Ensures we always have a real project row before Generate. */
+  const onNewProject = async () => {
+    reset();
+    const projectId = id();
+    const now = Date.now();
+    await db.transact([
+      db.tx.project[projectId].update({
+        name: "",
+        status: "draft",
+        collateralTypeId: "",
+        collateralTypeSlug: "",
+        formData: {},
+        sectionData: {},
+        images: [],
+        outputTargetAssignments: {},
+        generationLog: [],
+        createdAt: now,
+        updatedAt: now,
+      }),
+    ]);
+    setDraftProjectId(projectId);
+    setDraftCreatedAt(now);
+    setShowWizard(true);
     setStepValid(false);
   };
 
@@ -223,7 +241,7 @@ export default function WorkbenchPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-4">
-        <Button onClick={() => setShowWizard(true)}>New Project</Button>
+        <Button onClick={onNewProject}>New Project</Button>
       </div>
 
       {drafts.length > 0 && (

@@ -279,6 +279,19 @@ const _schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number(),
     }),
+
+    /** Generated output for one output target — written by the generation API. */
+    projectOutput: i.entity({
+      projectId: i.string(),
+      targetType: i.string(), // OutputTargetType
+      briefId: i.string(),
+      status: i.string(), // "pending" | "generating" | "complete" | "failed"
+      contentJson: i.json(), // GeneratedOutputContent
+      rawPrompt: i.string().optional(),
+      errorMessage: i.string().optional(),
+      createdAt: i.number(),
+      updatedAt: i.number(),
+    }),
   },
   links: {
     /** ExemplaryAsset ↔ Tag: many-to-many */
@@ -375,6 +388,12 @@ const _schema = i.schema({
     collateralTypeMediaFields: {
       forward: { on: "collateralType", has: "many", label: "mediaFields" },
       reverse: { on: "collateralMediaField", has: "one", label: "collateralType" },
+    },
+
+    /** Project → ProjectOutput: one-to-many */
+    projectOutputs: {
+      forward: { on: "project", has: "many", label: "outputs" },
+      reverse: { on: "projectOutput", has: "one", label: "project" },
     },
   },
   rooms: {},

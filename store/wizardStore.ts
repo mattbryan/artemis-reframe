@@ -13,6 +13,8 @@ interface WizardState {
   images: ProjectImage[];
   outputTargetAssignments: Partial<Record<OutputTargetType, string>>;
   draftProjectId: string | null;
+  /** Preserved when saving draft so we don't overwrite createdAt. */
+  draftCreatedAt: number | null;
 
   setStep: (step: number) => void;
   setProjectName: (name: string) => void;
@@ -28,6 +30,7 @@ interface WizardState {
   setHeroImage: (imageId: string) => void;
   setOutputTargetBrief: (targetType: OutputTargetType, briefId: string) => void;
   setDraftProjectId: (id: string) => void;
+  setDraftCreatedAt: (ts: number) => void;
   /** Rehydrate store from a saved draft project and collateral type; sets step. */
   hydrateFromDraft: (
     project: Project,
@@ -46,6 +49,7 @@ const initialState = {
   images: [],
   outputTargetAssignments: {},
   draftProjectId: null,
+  draftCreatedAt: null,
 };
 
 export const useWizardStore = create<WizardState>((set) => ({
@@ -85,9 +89,12 @@ export const useWizardStore = create<WizardState>((set) => ({
       },
     })),
   setDraftProjectId: (id) => set({ draftProjectId: id }),
+  setDraftCreatedAt: (ts) => set({ draftCreatedAt: ts }),
   hydrateFromDraft: (project, collateralType, step) =>
     set({
       draftProjectId: project.id,
+      draftCreatedAt:
+        typeof project.createdAt === "number" ? project.createdAt : null,
       projectName: project.name,
       formData: project.formData ?? {},
       sectionData: project.sectionData ?? {},

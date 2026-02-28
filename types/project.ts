@@ -1,6 +1,26 @@
+import type { GeneratedOutputContent } from "./generation";
 import type { OutputTargetType } from "./collateralType";
 
 export type ProjectStatus = "draft" | "generating" | "complete" | "failed";
+
+export type ProjectOutputStatus =
+  | "pending"
+  | "generating"
+  | "complete"
+  | "failed";
+
+export interface ProjectOutput {
+  id: string;
+  projectId: string;
+  targetType: OutputTargetType;
+  briefId: string;
+  status: ProjectOutputStatus;
+  contentJson: GeneratedOutputContent;
+  rawPrompt?: string;
+  errorMessage?: string;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface ProjectImage {
   id: string;

@@ -51,6 +51,19 @@ const rules = {
       delete: "true",
     },
   },
+  project: {
+    allow: {
+      view: "true",
+      create: "true",
+      update: "true",
+      delete: "true",
+    },
+  },
+  projectOutput: {
+    allow: {
+      view: "true",
+    },
+  },
 };
 
 export default rules;

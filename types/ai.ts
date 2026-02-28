@@ -10,6 +10,12 @@ export interface GenerationConfig {
   policyIds?: string[];
   deliverableType: string;
   options?: Record<string, unknown>;
+  systemPrompt?: string;
+  userPrompt?: string;
+  projectId?: string;
+  targetType?: string;
+  model?: string;
+  maxTokens?: number;
 }
 
 export interface GeneratedContent {
