@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { GenerationProgressDialog } from "../wizard/GenerationProgressDialog";
+import { GenerationProgressDialog } from "@/app/workbench/wizard/GenerationProgressDialog";
 import { Button } from "@/components/ui/button";
 import { formatTargetType, OUTPUT_TARGET_BADGE_CLASS } from "@/lib/collateralTypeUtils";
 import type { Project, ProjectOutput } from "@/types/project";
@@ -271,7 +271,7 @@ export default function WorkbenchProjectPage() {
         </div>
       )}
 
-      {project.status === "complete" && outputs.length <= 1 && !outputs.length && (
+      {project.status === "complete" && outputs.length === 0 && (
         <div className="rounded-lg border border-border bg-card p-6">
           <p className="text-muted-foreground">
             No output targets yet. Generate from the wizard to create outputs.
