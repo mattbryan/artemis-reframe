@@ -286,7 +286,8 @@ const _schema = i.schema({
       targetType: i.string(), // OutputTargetType
       briefId: i.string(),
       status: i.string(), // "pending" | "generating" | "complete" | "failed"
-      contentJson: i.json(), // GeneratedOutputContent
+      contentJson: i.json(), // GeneratedOutputContent — immutable AI output
+      editedContentJson: i.json().optional(), // user-edited version for Editor
       rawPrompt: i.string().optional(),
       errorMessage: i.string().optional(),
       createdAt: i.number(),

@@ -281,6 +281,7 @@ export async function assembleDesignBriefContext(
       $: { where: { id: briefId } },
       sections: {},
       meta: {},
+      screenshots: {},
     },
   });
 
@@ -301,11 +302,39 @@ export async function assembleDesignBriefContext(
   const meta = Array.isArray(metaRaw) ? metaRaw[0] : metaRaw;
   const metaRecord = meta as Record<string, unknown> | undefined;
 
+  const screenshotsRaw = briefRecord.screenshots ?? [];
+  const screenshotsList = Array.isArray(screenshotsRaw)
+    ? screenshotsRaw
+    : Object.values(screenshotsRaw);
+  const screenshots = (screenshotsList as Array<Record<string, unknown>>)
+    .sort((a, b) => (Number(a.order) ?? 0) - (Number(b.order) ?? 0))
+    .map((s) => {
+      const sectionIdsRaw = s.sectionIds;
+      const sectionIds = Array.isArray(sectionIdsRaw)
+        ? (sectionIdsRaw as string[])
+        : typeof sectionIdsRaw === "string"
+          ? (() => {
+              try {
+                const parsed = JSON.parse(sectionIdsRaw);
+                return Array.isArray(parsed) ? (parsed as string[]) : [];
+              } catch {
+                return [];
+              }
+            })()
+          : [];
+      return {
+        url: str(s.url),
+        caption: str(s.caption),
+        sectionIds,
+      };
+    });
+
   return {
     name: str(briefRecord.name),
     description: str(briefRecord.description),
     usageGuidelines: str(briefRecord.usageGuidelines),
     targetAudience: metaRecord ? str(metaRecord.targetAudience) : "",
     sections,
+    screenshots,
   };
 }

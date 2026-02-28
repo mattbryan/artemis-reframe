@@ -6,7 +6,10 @@ import type {
   GeneratedContent,
   PolicyResult,
 } from "@/types/ai";
-import type { GeneratedOutputContent } from "@/types/generation";
+import type {
+  GeneratedOutputContent,
+  GeneratedSection,
+} from "@/types/generation";
 import type { Tag } from "@/types/tag";
 
 const client = new Anthropic({
@@ -73,6 +76,68 @@ export async function generateContent(
       targetType: config.targetType,
     },
     createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Generate a single section. Returns parsed GeneratedSection.
+ * Used by regenerate-section API.
+ */
+export async function generateSingleSection(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<GeneratedSection> {
+  const response = await client.messages.create({
+    model: AI_MODEL,
+    max_tokens: AI_MAX_TOKENS,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }],
+  });
+
+  const rawText =
+    response.content[0]?.type === "text"
+      ? (response.content[0] as { type: "text"; text: string }).text
+      : response.content
+          .filter((block) => block.type === "text")
+          .map((block) => (block as { type: "text"; text: string }).text)
+          .join("");
+
+  const cleaned = rawText
+    .replace(/^```json\s*/, "")
+    .replace(/\s*```$/, "")
+    .trim();
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    throw new Error(
+      `AI returned invalid JSON. First 500 chars: ${cleaned.slice(0, 500)}`
+    );
+  }
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !("sectionId" in parsed) ||
+    !("sectionName" in parsed) ||
+    !("fields" in parsed) ||
+    !("narrative" in parsed)
+  ) {
+    throw new Error(
+      `AI response missing required section fields. Keys: ${Object.keys(parsed as object).join(", ")}`
+    );
+  }
+
+  return {
+    sectionId: String((parsed as GeneratedSection).sectionId),
+    sectionName: String((parsed as GeneratedSection).sectionName),
+    fields:
+      typeof (parsed as GeneratedSection).fields === "object" &&
+      (parsed as GeneratedSection).fields !== null
+        ? (parsed as GeneratedSection).fields
+        : {},
+    narrative: String((parsed as GeneratedSection).narrative),
   };
 }
 

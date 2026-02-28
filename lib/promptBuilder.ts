@@ -53,11 +53,40 @@ function buildOutputSchema(): string {
       "tags": ["string — suggested tags to filter by"]
     }
   ],
-  "generationNotes": "string — brief self-commentary on key brand alignment decisions made"
+  "generationNotes": "string — brief self-commentary on key brand alignment decisions made",
+  "designSpec": {
+    "palette": {
+      "primary": "string — hex e.g. #0a0d1a; MUST be an exact hex from brand COLOR INTENTS",
+      "secondary": "string — hex from brand",
+      "accent": "string — hex from brand",
+      "background": "string — hex, page background",
+      "surface": "string — hex, card/section surface",
+      "text": "string — hex, body text",
+      "textInverse": "string — hex, text on primary/dark (e.g. headers)"
+    },
+    "typography": {
+      "fontFamilyHeading": "string — one of: Helvetica, Helvetica-Bold, Times-Roman, Times-Bold, Courier",
+      "fontFamilyBody": "string — one of same set",
+      "fontFamilyCaption": "string — optional, one of same set; omit to use body",
+      "headingFontSize": "number — pt, e.g. 14",
+      "bodyFontSize": "number — pt, e.g. 10",
+      "captionFontSize": "number — pt, e.g. 9"
+    },
+    "layout": {
+      "pagePadding": "number — pt, e.g. 40",
+      "sectionSpacing": "number — pt, space between sections",
+      "headerTreatment": "string — exactly one of: fullBleed, inline, minimal",
+      "coverPage": "boolean — true to include a cover page",
+      "sectionDensity": "string — exactly one of: compact, balanced, airy"
+    },
+    "sectionOverrides": "object — optional; keys are sectionId, values are { backgroundColor?: hex } for sections needing a different background (e.g. financials)"
+  }
 }
 
 Generate one section object for each section defined in the collateral definition.
-Match sectionName exactly to the section names provided.`;
+Match sectionName exactly to the section names provided.
+
+For designSpec: when the target is print-pdf (or social-image), derive designSpec from the brand visual identity only. Use EXACT hex values from the brand COLOR INTENTS. For typography, choose only from the allowed font families. If no brand visual is provided, use a neutral professional default (e.g. dark primary, light background, Helvetica).`;
 }
 
 /**
@@ -248,6 +277,73 @@ ${briefSectionLines}
 <task>
 Generate a complete ${formatTargetType(targetType)} for the project above.
 Follow all brand guidelines, policies, and the design brief exactly.
+${targetType === "print-pdf" ? "Include a designSpec derived from the brand visual identity (exact hex from brand colors, allowed fonts only). " : ""}
 Return structured JSON matching the schema in your system prompt.
+</task>`;
+}
+
+/**
+ * Build user prompt for regenerating a single section.
+ * Same context as buildUserPrompt but task asks for one section only.
+ */
+export function buildRegenerateSectionUserPrompt(
+  projectInput: ProjectInputBlock,
+  brief: DesignBriefContextBlock,
+  targetType: OutputTargetType,
+  sectionId: string,
+  sectionName: string
+): string {
+  const formLines = Object.entries(projectInput.formData)
+    .map(([label, value]) => `${label}: ${value}`)
+    .join("\n");
+
+  const sectionLines = Object.entries(projectInput.sectionData)
+    .map(([secName, fields]) => {
+      const fieldLines = Object.entries(fields)
+        .map(([fieldLabel, value]) => `${fieldLabel}: ${value}`)
+        .join("\n");
+      return `[${secName}]\n${fieldLines}`;
+    })
+    .join("\n\n");
+
+  const imageLines =
+    projectInput.images.length > 0
+      ? projectInput.images
+          .map(
+            (img) =>
+              `- ${img.mediaFieldLabel}: ${img.filename}${img.isHero ? " [HERO IMAGE]" : ""}`
+          )
+          .join("\n")
+      : "";
+
+  const briefSectionLines = brief.sections
+    .map((s) => `[${formatSectionType(s.type)}]\n${s.body}`)
+    .join("\n\n");
+
+  return `<project_inputs>
+Project: ${projectInput.projectName}
+
+${formLines}
+
+${sectionLines}
+
+${imageLines ? `IMAGES PROVIDED:\n${imageLines}` : ""}
+</project_inputs>
+
+<design_brief>
+Brief: ${brief.name}
+${brief.description}
+
+Usage Guidelines: ${brief.usageGuidelines}
+Target Audience: ${brief.targetAudience}
+
+${briefSectionLines}
+</design_brief>
+
+<task>
+Regenerate only the "${sectionName}" section (sectionId: "${sectionId}") for this ${formatTargetType(targetType)}.
+Follow all brand guidelines, policies, and the design brief exactly.
+Return a single JSON object with keys: sectionId, sectionName, fields (object of field labels to string values), narrative (string).
+Use sectionId "${sectionId}" and sectionName "${sectionName}" exactly. No other text or markdown.
 </task>`;
 }

@@ -1,12 +1,13 @@
 import type { GeneratedOutputContent } from "./generation";
 import type { OutputTargetType } from "./collateralType";
 
-export type ProjectStatus = "draft" | "generating" | "complete" | "failed";
+export type ProjectStatus = "draft" | "generating" | "complete" | "approved" | "failed";
 
 export type ProjectOutputStatus =
   | "pending"
   | "generating"
   | "complete"
+  | "approved"
   | "failed";
 
 export interface ProjectOutput {
@@ -16,6 +17,7 @@ export interface ProjectOutput {
   briefId: string;
   status: ProjectOutputStatus;
   contentJson: GeneratedOutputContent;
+  editedContentJson?: GeneratedOutputContent;
   rawPrompt?: string;
   errorMessage?: string;
   createdAt: number;

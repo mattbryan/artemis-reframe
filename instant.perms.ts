@@ -62,6 +62,7 @@ const rules = {
   projectOutput: {
     allow: {
       view: "true",
+      update: "true",
     },
   },
 };

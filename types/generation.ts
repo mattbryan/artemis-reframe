@@ -17,6 +17,49 @@ export interface AssetRecommendation {
   tags: string[]; // suggested tags to filter by in the asset library
 }
 
+/** PDF palette: role → hex. All values must be valid hex (e.g. #0a0d1a). Used by design agent and PDF renderer. */
+export interface DesignSpecPalette {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  text: string;
+  textInverse: string;
+}
+
+/** Typography for PDF: family names (Helvetica, Times-Roman, Courier supported by @react-pdf/renderer) and sizes in pt. */
+export interface DesignSpecTypography {
+  fontFamilyHeading: string;
+  fontFamilyBody: string;
+  fontFamilyCaption?: string; // optional, defaults to body
+  headingFontSize: number;
+  bodyFontSize: number;
+  captionFontSize: number;
+}
+
+/** Layout options for PDF. Sizes in pt. */
+export interface DesignSpecLayout {
+  pagePadding: number;
+  sectionSpacing: number;
+  headerTreatment: "fullBleed" | "inline" | "minimal";
+  coverPage: boolean;
+  sectionDensity: "compact" | "balanced" | "airy";
+}
+
+/** Optional overrides for a specific section (e.g. background for financials). */
+export interface DesignSpecSectionOverride {
+  backgroundColor?: string;
+}
+
+/** Full design specification for PDF — concrete values (hex, numbers, enums) for reliable rendering. */
+export interface DesignSpec {
+  palette: DesignSpecPalette;
+  typography: DesignSpecTypography;
+  layout: DesignSpecLayout;
+  sectionOverrides?: Record<string, DesignSpecSectionOverride>; // sectionId → overrides
+}
+
 /** Full structured output for one output target — stored in projectOutput.contentJson */
 export interface GeneratedOutputContent {
   targetType: OutputTargetType;
@@ -25,6 +68,10 @@ export interface GeneratedOutputContent {
   sections: GeneratedSection[];
   assetRecommendations: AssetRecommendation[];
   generationNotes: string; // AI self-commentary on brand alignment decisions
+  /** Design specification for PDF; derived from brand + brief. Omitted in legacy content. */
+  designSpec?: DesignSpec;
+  /** Full brief (sections + screenshots) at generation time; used by PDF renderer for layout and design-reference page. */
+  briefSnapshot?: BriefSnapshot;
 }
 
 /** Brand context assembled from InstantDB — passed to prompt builder */
@@ -107,6 +154,13 @@ export interface ProjectInputBlock {
   }>;
 }
 
+/** Reference screenshot in a design brief (for context and snapshot). */
+export interface DesignBriefScreenshotRef {
+  url: string;
+  caption: string;
+  sectionIds: string[];
+}
+
 /** Design brief context for one output target */
 export interface DesignBriefContextBlock {
   name: string;
@@ -117,4 +171,16 @@ export interface DesignBriefContextBlock {
     type: string;
     body: string;
   }>;
+  /** Reference screenshots (url, caption, sectionIds); populated by assembleDesignBriefContext. */
+  screenshots?: DesignBriefScreenshotRef[];
+}
+
+/** Snapshot of the design brief at generation time — stored in content so PDF pipeline has full context. */
+export interface BriefSnapshot {
+  name: string;
+  description: string;
+  usageGuidelines: string;
+  targetAudience: string;
+  sections: Array<{ type: string; body: string }>;
+  screenshots?: DesignBriefScreenshotRef[];
 }

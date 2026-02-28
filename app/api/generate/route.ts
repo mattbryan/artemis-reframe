@@ -123,7 +123,7 @@ export async function POST(request: Request): Promise<Response> {
         });
 
         const outputId = id();
-        const contentJson = JSON.parse(result.content);
+        const contentJson = JSON.parse(result.content) as Record<string, unknown>;
         await adminDb.transact([
           adminDb.tx.projectOutput[outputId].update({
             projectId,
@@ -135,6 +135,8 @@ export async function POST(request: Request): Promise<Response> {
             createdAt: Date.now(),
             updatedAt: Date.now(),
           }),
+          adminDb.tx.projectOutput[outputId].link({ project: projectId }),
+          adminDb.tx.project[projectId].link({ outputs: outputId }),
         ]);
 
         await appendGenerationLog(
@@ -162,6 +164,8 @@ export async function POST(request: Request): Promise<Response> {
             createdAt: Date.now(),
             updatedAt: Date.now(),
           }),
+          adminDb.tx.projectOutput[outputId].link({ project: projectId }),
+          adminDb.tx.project[projectId].link({ outputs: outputId }),
         ]);
 
         failedCount++;
