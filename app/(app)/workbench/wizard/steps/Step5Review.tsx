@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { db } from "@/lib/db";
 import { useWizardStore } from "@/store/wizardStore";
+import { useStorageUrl } from "@/lib/hooks/useStorageUrl";
 import {
   parseOutputTargets,
   parseSectionFields,
@@ -12,6 +13,44 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { FieldDef } from "@/types/collateralType";
+import type { ProjectImage } from "@/types/project";
+
+function ReviewImageThumb({ img }: { img: ProjectImage }) {
+  const resolvedUrl = useStorageUrl(img.storagePath ?? null);
+  const imgSrc = resolvedUrl ?? img.url ?? undefined;
+  const [imgError, setImgError] = useState(false);
+  const showImage = imgSrc && !imgError;
+
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-md border",
+        img.isHero && "ring-2 ring-primary"
+      )}
+    >
+      {showImage ? (
+        <img
+          src={imgSrc}
+          alt={img.filename}
+          className="aspect-square object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div className="flex aspect-square items-center justify-center bg-muted text-xs text-muted-foreground">
+          {img.url ? "No preview" : "—"}
+        </div>
+      )}
+      {img.isHero && (
+        <span className="absolute left-1 top-1 rounded bg-primary px-1 text-xs text-primary-foreground">
+          Hero
+        </span>
+      )}
+      <p className="truncate p-1 text-xs text-muted-foreground">
+        {img.filename}
+      </p>
+    </div>
+  );
+}
 
 interface Step5ReviewProps {
   onStepValidChange: (valid: boolean) => void;
@@ -185,29 +224,7 @@ export function Step5Review({
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
             {images.map((img) => (
-              <div
-                key={img.id}
-                className={cn(
-                  "relative overflow-hidden rounded-md border",
-                  img.isHero && "ring-2 ring-primary"
-                )}
-              >
-                {img.url && (
-                  <img
-                    src={img.url}
-                    alt={img.filename}
-                    className="aspect-square object-cover"
-                  />
-                )}
-                {img.isHero && (
-                  <span className="absolute left-1 top-1 rounded bg-primary px-1 text-xs text-primary-foreground">
-                    Hero
-                  </span>
-                )}
-                <p className="truncate p-1 text-xs text-muted-foreground">
-                  {img.filename}
-                </p>
-              </div>
+              <ReviewImageThumb key={img.id} img={img} />
             ))}
           </div>
         </CardContent>

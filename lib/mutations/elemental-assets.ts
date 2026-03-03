@@ -24,6 +24,7 @@ export async function createElementalAsset(
       title: file.name,
       type: assetType,
       url,
+      storagePath: path,
       schemaVersion: "1.0",
       createdAt: new Date().toISOString(),
       metadata: {},

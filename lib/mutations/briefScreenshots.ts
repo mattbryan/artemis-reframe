@@ -9,6 +9,7 @@ export async function createBriefScreenshot(params: {
   briefId: string;
   sectionIds?: string[];
   url: string;
+  storagePath?: string;
   caption: string;
   order: number;
 }): Promise<string> {
@@ -19,6 +20,7 @@ export async function createBriefScreenshot(params: {
       briefId: params.briefId,
       sectionIds: sectionIds.length > 0 ? sectionIds : undefined,
       url: params.url,
+      storagePath: params.storagePath,
       caption: params.caption,
       order: params.order,
     }),

@@ -29,6 +29,8 @@ export interface ProjectOutput {
 export interface ProjectImage {
   id: string;
   url: string;
+  /** Storage path for resolving fresh signed URLs (url may expire). */
+  storagePath?: string;
   filename: string;
   fileSize: number;
   isHero: boolean;

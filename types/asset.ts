@@ -30,6 +30,8 @@ export interface ElementalAsset extends BaseAsset {
   title: string;
   assetType: ElementalAssetType | "photo" | "illustration" | "design-element"; // legacy values supported
   url?: string;
+  /** Storage path for resolving fresh signed URLs (url may expire). */
+  storagePath?: string;
 }
 
 export interface ProprietaryDoc extends BaseAsset {

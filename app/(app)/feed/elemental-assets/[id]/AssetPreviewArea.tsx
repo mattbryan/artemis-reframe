@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useStorageUrl } from "@/lib/hooks/useStorageUrl";
 import { updateElementalAsset } from "@/lib/mutations/elemental-assets";
 import type { ElementalAsset } from "@/types/asset";
 
@@ -78,16 +79,22 @@ export function AssetPreviewArea({ asset }: AssetPreviewAreaProps) {
     }
   };
 
+  const resolvedUrl = useStorageUrl(asset.storagePath ?? null);
+  const imgSrc = resolvedUrl ?? asset.url ?? undefined;
+  const [imgError, setImgError] = useState(false);
+  const showPlaceholder = !imgSrc || imgError;
+
   return (
     <div className="grid grid-cols-1 gap-8 px-6 lg:grid-cols-2">
       {/* Asset preview card */}
       <div className="flex min-h-[400px] flex-col overflow-hidden rounded-2xl border border-border bg-card">
         <div className="relative flex flex-1 min-h-0 overflow-hidden p-0 gap-0">
-          {asset.url ? (
+          {!showPlaceholder ? (
             <img
-              src={asset.url}
+              src={imgSrc}
               alt={asset.title}
               className="h-full w-full object-contain"
+              onError={() => setImgError(true)}
             />
           ) : (
             <div className="flex flex-1 items-center justify-center bg-muted text-muted-foreground">

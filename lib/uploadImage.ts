@@ -8,7 +8,9 @@
  *   return blob.url;
  */
 
-export async function uploadImage(file: File): Promise<string> {
+export async function uploadImage(
+  file: File
+): Promise<{ url: string; storagePath: string }> {
   // Placeholder: use InstantDB storage so we don't require a separate backend.
   // When Vercel Blob is configured, swap this for put() and return the blob URL.
   const { db } = await import("@/lib/db");
@@ -16,5 +18,5 @@ export async function uploadImage(file: File): Promise<string> {
   const ok = await db.storage.upload(pathname, file);
   if (!ok) throw new Error("Upload failed");
   const url = await db.storage.getDownloadUrl(pathname);
-  return url;
+  return { url, storagePath: pathname };
 }

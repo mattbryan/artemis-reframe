@@ -23,11 +23,12 @@ export function BriefScreenshotsTab() {
         for (let i = 0; i < fileArray.length; i++) {
           const file = fileArray[i];
           if (!file.type.startsWith("image/")) continue;
-          const url = await uploadImage(file);
+          const { url, storagePath } = await uploadImage(file);
           await createBriefScreenshot({
             briefId: brief.id,
             sectionIds: [],
             url,
+            storagePath,
             caption: "",
             order: order + i,
           });

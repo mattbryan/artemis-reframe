@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useStorageUrl } from "@/lib/hooks/useStorageUrl";
 import {
   updateBriefScreenshot,
   deleteBriefScreenshot,
@@ -44,15 +45,27 @@ export function ScreenshotCard({
     }
   };
 
+  const resolvedUrl = useStorageUrl(screenshot.storagePath ?? null);
+  const imgSrc = resolvedUrl ?? screenshot.url ?? undefined;
+  const [imgError, setImgError] = useState(false);
+  const showPlaceholder = !imgSrc || imgError;
+
   return (
     <div className="group relative overflow-hidden rounded-lg border border-border bg-card">
       <div className="relative aspect-video w-full bg-muted">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={screenshot.url}
-          alt={screenshot.caption || "Screenshot"}
-          className="h-full w-full object-cover"
-        />
+        {!showPlaceholder ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={imgSrc}
+            alt={screenshot.caption || "Screenshot"}
+            className="h-full w-full object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+            No preview
+          </div>
+        )}
         <Button
           variant="secondary"
           size="icon"

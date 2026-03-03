@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useStorageUrl } from "@/lib/hooks/useStorageUrl";
 import type { ElementalAsset } from "@/types/asset";
 
 interface AssetPreviewCardProps {
@@ -37,6 +39,10 @@ export function AssetPreviewCard({ asset, selected, onToggleSelect }: AssetPrevi
   const assetTypeLabel =
     ASSET_TYPE_LABELS[asset.assetType ?? ""] ?? asset.assetType ?? "—";
   const createdAt = formatDate(asset.created_at);
+  const resolvedUrl = useStorageUrl(asset.storagePath ?? null);
+  const imgSrc = resolvedUrl ?? asset.url ?? undefined;
+  const [imgError, setImgError] = useState(false);
+  const showPlaceholder = !imgSrc || imgError;
 
   return (
     <Link
@@ -44,11 +50,12 @@ export function AssetPreviewCard({ asset, selected, onToggleSelect }: AssetPrevi
       className="flex h-[248px] flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/50"
     >
       <div className="relative flex flex-1 min-h-0 overflow-hidden p-4">
-        {asset.url ? (
+        {!showPlaceholder ? (
           <img
-            src={asset.url}
+            src={imgSrc}
             alt={fileName}
             className="absolute inset-0 h-full w-full object-cover"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-muted text-sm text-muted-foreground">

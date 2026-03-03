@@ -78,6 +78,7 @@ function mapScreenshot(s: {
   sectionId?: string | null;
   sectionIds?: string[] | null;
   url?: string;
+  storagePath?: string | null;
   caption?: string;
   order?: number;
 }): BriefScreenshot {
@@ -92,6 +93,7 @@ function mapScreenshot(s: {
     sectionId: s.sectionId ?? null,
     sectionIds,
     url: s.url ?? "",
+    storagePath: s.storagePath ?? undefined,
     caption: s.caption ?? "",
     order: typeof s.order === "number" ? s.order : 0,
   };

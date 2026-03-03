@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWizardStore } from "@/store/wizardStore";
 import { uploadWizardImage } from "@/lib/uploadWizardImage";
+import { useStorageUrl } from "@/lib/hooks/useStorageUrl";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ProjectImage } from "@/types/project";
@@ -89,6 +90,85 @@ interface ImageUploadZoneProps {
   onSetHero: (imageId: string) => void;
 }
 
+function WizardImageThumb({
+  img,
+  field,
+  onSetHero,
+  onRemove,
+}: {
+  img: ProjectImage;
+  field: CollateralMediaField;
+  onSetHero: (imageId: string) => void;
+  onRemove: (imageId: string) => void;
+}) {
+  const resolvedUrl = useStorageUrl(img.storagePath ?? null);
+  const imgSrc = resolvedUrl ?? img.url ?? undefined;
+  const [imgError, setImgError] = useState(false);
+  const showPlaceholder = !imgSrc || imgError;
+
+  return (
+    <div
+      className={cn(
+        "relative flex flex-col overflow-hidden rounded-md border bg-card",
+        img.isHero && "ring-2 ring-primary"
+      )}
+    >
+      {!showPlaceholder ? (
+        <img
+          src={imgSrc}
+          alt={img.filename}
+          className="aspect-square object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div className="flex aspect-square items-center justify-center bg-muted text-muted-foreground">
+          {img.url ? "No preview" : "Uploading…"}
+        </div>
+      )}
+      {img.isHero && (
+        <span className="absolute left-2 top-2 flex items-center gap-1 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
+          <Star className="h-3 w-3" />
+          Hero
+        </span>
+      )}
+      <div className="flex items-center justify-between gap-1 p-2">
+        <span className="min-w-0 truncate text-xs text-muted-foreground">
+          {img.filename}
+        </span>
+        <div className="flex shrink-0 gap-1">
+          {field.mediaType === "image" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onSetHero(img.id)}
+              aria-label="Set as hero"
+            >
+              <Star
+                className={cn(
+                  "h-3.5 w-3.5",
+                  img.isHero && "fill-primary text-primary"
+                )}
+              />
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-destructive"
+            onClick={() => onRemove(img.id)}
+            aria-label="Remove"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImageUploadZone({
   field,
   images,
@@ -119,13 +199,14 @@ function ImageUploadZone({
       let heroAssigned = hasAnyHero;
       try {
         for (const file of fileArray) {
-          const { url } = await uploadWizardImage(file);
+          const { url, storagePath } = await uploadWizardImage(file);
           const isFirstImageNoHero =
             field.mediaType === "image" && !heroAssigned;
           if (isFirstImageNoHero) heroAssigned = true;
           const img: ProjectImage = {
             id: crypto.randomUUID(),
             url,
+            storagePath,
             filename: file.name,
             fileSize: file.size,
             isHero: isFirstImageNoHero,
@@ -211,65 +292,13 @@ function ImageUploadZone({
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {images.map((img) => (
-          <div
+          <WizardImageThumb
             key={img.id}
-            className={cn(
-              "relative flex flex-col overflow-hidden rounded-md border bg-card",
-              img.isHero && "ring-2 ring-primary"
-            )}
-          >
-            {img.url ? (
-              <img
-                src={img.url}
-                alt={img.filename}
-                className="aspect-square object-cover"
-              />
-            ) : (
-              <div className="flex aspect-square items-center justify-center bg-muted text-muted-foreground">
-                Uploading…
-              </div>
-            )}
-            {img.isHero && (
-              <span className="absolute left-2 top-2 flex items-center gap-1 rounded bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-                <Star className="h-3 w-3" />
-                Hero
-              </span>
-            )}
-            <div className="flex items-center justify-between gap-1 p-2">
-              <span className="min-w-0 truncate text-xs text-muted-foreground">
-                {img.filename}
-              </span>
-              <div className="flex shrink-0 gap-1">
-                {field.mediaType === "image" && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => onSetHero(img.id)}
-                    aria-label="Set as hero"
-                  >
-                    <Star
-                      className={cn(
-                        "h-3.5 w-3.5",
-                        img.isHero && "fill-primary text-primary"
-                      )}
-                    />
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-destructive"
-                  onClick={() => onRemove(img.id)}
-                  aria-label="Remove"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          </div>
+            img={img}
+            field={field}
+            onSetHero={onSetHero}
+            onRemove={onRemove}
+          />
         ))}
       </div>
     </div>

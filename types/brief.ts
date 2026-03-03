@@ -45,6 +45,8 @@ export interface BriefScreenshot {
   /** Section IDs this screenshot is relevant to (multiple allowed). */
   sectionIds: string[];
   url: string;
+  /** Storage path for resolving fresh signed URLs (url may expire). */
+  storagePath?: string;
   caption: string;
   order: number;
 }

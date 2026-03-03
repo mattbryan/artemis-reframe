@@ -34,6 +34,7 @@ export function useElementalAssets(): {
         title: ea.title,
         assetType: ea.type as ElementalAssetType,
         url: ea.url,
+        storagePath: ea.storagePath,
         tags,
         schema_version: ea.schemaVersion ?? "1.0",
         created_at,

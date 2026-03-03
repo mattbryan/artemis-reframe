@@ -33,6 +33,7 @@ const _schema = i.schema({
       title: i.string(),
       type: i.string(), // 'photo' | 'illustration' | 'design-element'
       url: i.string().optional(),
+      storagePath: i.string().optional(),
       schemaVersion: i.string(),
       createdAt: i.date(),
       metadata: i.json().optional(),
@@ -120,6 +121,7 @@ const _schema = i.schema({
       sectionId: i.string().optional(),
       sectionIds: i.json().optional(),
       url: i.string(),
+      storagePath: i.string().optional(),
       caption: i.string(),
       order: i.number(),
     }),
@@ -273,7 +275,8 @@ const _schema = i.schema({
       collateralTypeSlug: i.string(),
       formData: i.json(), // { [globalFieldId]: string | boolean | number }
       sectionData: i.json(), // { [sectionId]: { [fieldDefId]: string | boolean | number } }
-      images: i.json(), // ProjectImage[]
+      images: i.json(), // ProjectImage[] (each may have storagePath for fresh URL resolution)
+      storagePath: i.string().optional(),
       outputTargetAssignments: i.json(), // { [targetType]: briefId }
       generationLog: i.json(), // string[]
       errorMessage: i.string().optional(),
