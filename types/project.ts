@@ -7,8 +7,9 @@ export type ProjectOutputStatus =
   | "pending"
   | "generating"
   | "complete"
-  | "approved"
   | "failed";
+
+export type ProjectOutputApprovalStatus = "approved" | "not_approved";
 
 export interface ProjectOutput {
   id: string;
@@ -16,6 +17,7 @@ export interface ProjectOutput {
   targetType: OutputTargetType;
   briefId: string;
   status: ProjectOutputStatus;
+  approvalStatus?: ProjectOutputApprovalStatus;
   contentJson: GeneratedOutputContent;
   editedContentJson?: GeneratedOutputContent;
   rawPrompt?: string;

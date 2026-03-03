@@ -66,7 +66,7 @@ export function EditorToolbar({
 
   const outputId = output.id;
   const unsaved = hasUnsavedChanges(outputId);
-  const isApproved = output.status === "approved";
+  const isApproved = output.approvalStatus === "approved";
   const content = liveContent[outputId];
 
   const handleSave = useCallback(async () => {
@@ -92,26 +92,19 @@ export function EditorToolbar({
     async (useEditedContent: boolean) => {
       setApproving(true);
       try {
+        const approvalStatus = isApproved ? "not_approved" : "approved";
         if (useEditedContent && content) {
           await db.transact([
             db.tx.projectOutput[outputId].update({
               editedContentJson: content as unknown as Record<string, unknown>,
-              status: isApproved ? "complete" : "approved",
-              updatedAt: Date.now(),
-            }),
-            db.tx.project[projectId].update({
-              status: isApproved ? "complete" : "approved",
+              approvalStatus,
               updatedAt: Date.now(),
             }),
           ]);
         } else {
           await db.transact([
             db.tx.projectOutput[outputId].update({
-              status: isApproved ? "complete" : "approved",
-              updatedAt: Date.now(),
-            }),
-            db.tx.project[projectId].update({
-              status: isApproved ? "complete" : "approved",
+              approvalStatus,
               updatedAt: Date.now(),
             }),
           ]);
@@ -122,7 +115,7 @@ export function EditorToolbar({
         setApproveDialogOpen(false);
       }
     },
-    [content, outputId, projectId, isApproved, router]
+    [content, outputId, isApproved, router]
   );
 
   const handleApprove = useCallback(() => {
@@ -181,10 +174,10 @@ export function EditorToolbar({
         className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4"
         style={{ borderBottomColor: MATTHEWS_NAVY }}
       >
-        <Link href={`/workbench/${projectId}`}>
-        <Button variant="ghost" size="icon" aria-label="Back to project">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
+        <Link href="/archive">
+          <Button variant="ghost" size="icon" aria-label="Back to archive">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </Link>
 
         <div className="min-w-0 flex-1">

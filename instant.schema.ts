@@ -285,7 +285,8 @@ const _schema = i.schema({
       projectId: i.string(),
       targetType: i.string(), // OutputTargetType
       briefId: i.string(),
-      status: i.string(), // "pending" | "generating" | "complete" | "failed"
+      status: i.string(), // build state: "pending" | "generating" | "complete" | "failed"
+      approvalStatus: i.string().optional(), // "approved" | "not_approved"
       contentJson: i.json(), // GeneratedOutputContent — immutable AI output
       editedContentJson: i.json().optional(), // user-edited version for Editor
       rawPrompt: i.string().optional(),

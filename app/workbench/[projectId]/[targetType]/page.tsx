@@ -7,7 +7,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { EditorToolbar } from "./EditorToolbar";
 import { LeftPanel } from "./LeftPanel";
 import { RightPanel } from "./RightPanel";
-import type { Project, ProjectOutput } from "@/types/project";
+import type { Project, ProjectOutput, ProjectOutputApprovalStatus } from "@/types/project";
 import type { GeneratedOutputContent } from "@/types/generation";
 import type { OutputTargetType } from "@/types/collateralType";
 import {
@@ -122,12 +122,18 @@ function normalizeOutputs(row: Record<string, unknown>): ProjectOutput[] {
         // ignore
       }
     }
+    const rawApproval = rec.approvalStatus;
+    const approvalStatus: ProjectOutputApprovalStatus | undefined =
+      rawApproval === "approved" || rawApproval === "not_approved"
+        ? rawApproval
+        : undefined;
     result.push({
       id,
       projectId: (rec.projectId as string) ?? "",
       targetType: ((rec.targetType as string) ?? "print-pdf") as ProjectOutput["targetType"],
       briefId: (rec.briefId as string) ?? "",
       status: (rec.status as ProjectOutput["status"]) ?? "pending",
+      approvalStatus,
       contentJson,
       editedContentJson,
       rawPrompt:
