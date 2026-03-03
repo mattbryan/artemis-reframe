@@ -17,6 +17,7 @@ function LoginPageInner() {
     typeof redirectToRaw === "string" && redirectToRaw.startsWith("/")
       ? redirectToRaw
       : "/workbench";
+  const errorParam = searchParams.get("error");
 
   const { user, isLoading, error } = db.useAuth();
   const [isPending, setIsPending] = useState(false);
@@ -78,6 +79,11 @@ function LoginPageInner() {
         {error && (
           <p className="mt-3 text-center text-sm text-destructive">
             {error?.message ?? "Sign-in failed. Please try again."}
+          </p>
+        )}
+        {errorParam === "domain" && (
+          <p className="mt-3 text-center text-sm text-destructive">
+            This app is restricted to matthews.com accounts. Please sign in with your matthews.com Google account.
           </p>
         )}
         {originHint && (
