@@ -49,4 +49,6 @@ export interface Project {
   errorMessage?: string;
   createdAt: number;
   updatedAt: number;
+  createdByEmail?: string;
+  createdByName?: string;
 }

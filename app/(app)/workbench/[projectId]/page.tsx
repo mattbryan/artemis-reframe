@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { GenerationProgressDialog } from "@/app/workbench/wizard/GenerationProgressDialog";
+import { GenerationProgressDialog } from "../wizard/GenerationProgressDialog";
 import { Button } from "@/components/ui/button";
 import { formatTargetType, OUTPUT_TARGET_BADGE_CLASS } from "@/lib/collateralTypeUtils";
 import type { Project, ProjectOutput } from "@/types/project";

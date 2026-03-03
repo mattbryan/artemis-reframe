@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Layout,
@@ -15,9 +15,17 @@ import {
   User,
   Bug,
   Bell,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReframeLogo } from "./ReframeLogo";
+import { db } from "@/lib/db";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const NAV_GROUPS = [
   {
@@ -49,6 +57,16 @@ const NAV_GROUPS = [
 
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = db.useAuth();
+
+  const displayName =
+    (user as { name?: string } | null)?.name ?? user?.email ?? "Account";
+
+  const handleSignOut = () => {
+    db.auth.signOut();
+    router.replace("/login");
+  };
 
   return (
     <aside
@@ -107,13 +125,26 @@ export function Sidebar({ className }: { className?: string }) {
       {/* Footer: Profile, Bug, Notifications */}
       <div className="mt-auto flex items-end gap-0 py-2">
         <div className="flex flex-1 items-center justify-center gap-2">
-          <button
-            type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
-            aria-label="Profile"
-          >
-            <User className="h-6 w-6" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+                aria-label="Account"
+              >
+                <User className="h-6 w-6" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="min-w-[12rem]">
+              <div className="px-2 py-1.5 text-xs text-muted-foreground truncate">
+                {displayName}
+              </div>
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             type="button"
             className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"

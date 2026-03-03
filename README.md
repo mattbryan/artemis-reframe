@@ -74,13 +74,9 @@ Stubbed for scaffold phase. Intended functions:
 - `applyPolicies(content)` — Apply policies to content; returns pass/fail and violations
 - `suggestTags(content)` — Suggest tags for generated content
 
-### Auth Stub (`/lib/auth-stub.ts`)
+### Authentication
 
-`isAuthenticated()` always returns `true` during scaffold. Replace with real auth provider when ready.
-
-### Route Guard (`/components/layout/RouteGuard.tsx`)
-
-Placeholder that checks `isAuthenticated`. No redirect yet — add `/login` redirect when auth is implemented.
+Uses **InstantDB built-in auth** with Google OAuth. Unauthenticated users are redirected to `/login` by `RouteGuard`; the login page uses `db.auth.signInWithProvider({ provider: "google" })`. Sign-out is in the sidebar user menu. See `lib/db.ts` and `LAUNCH.md` for OAuth setup (InstantDB dashboard + Google Cloud Console).
 
 ## Conventions
 

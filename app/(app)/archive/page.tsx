@@ -31,6 +31,8 @@ interface NormalizedRow {
   targetType: string;
   approvalStatus: ProjectOutputApprovalStatus | undefined;
   createdAt: number;
+  createdByName?: string;
+  createdByEmail?: string;
 }
 
 function normalizeProjectName(project: unknown): string {
@@ -60,7 +62,7 @@ function normalizeArchiveRows(data: unknown): NormalizedRow[] {
     if (!id) continue;
     const status = rec.status as string | undefined;
     if (status === "failed") continue;
-    const project = rec.project;
+    const project = rec.project as Record<string, unknown> | undefined;
     const projectName = normalizeProjectName(project);
     const projectId = (rec.projectId as string) ?? "";
     const targetType = (rec.targetType as string) ?? "";
@@ -70,6 +72,14 @@ function normalizeArchiveRows(data: unknown): NormalizedRow[] {
         ? (rawApproval as ProjectOutputApprovalStatus)
         : undefined;
     const createdAt = typeof rec.createdAt === "number" ? rec.createdAt : 0;
+    const createdByName =
+      project && typeof project.createdByName === "string"
+        ? project.createdByName
+        : undefined;
+    const createdByEmail =
+      project && typeof project.createdByEmail === "string"
+        ? project.createdByEmail
+        : undefined;
     result.push({
       id,
       projectId,
@@ -77,6 +87,8 @@ function normalizeArchiveRows(data: unknown): NormalizedRow[] {
       targetType,
       approvalStatus,
       createdAt,
+      createdByName,
+      createdByEmail,
     });
   }
   return result;
@@ -341,7 +353,9 @@ export default function ArchivePage() {
                       {row.projectName}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">—</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {row.createdByName ?? row.createdByEmail ?? "—"}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={cn(

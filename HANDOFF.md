@@ -82,9 +82,8 @@ So: **Brand screenshots** = stub, must be implemented for production. **Brief sc
 
 ## 7. Authentication
 
-- **Auth is stubbed:** `lib/auth-stub.ts` exports `isAuthenticated()` which always returns `true`. `RouteGuard` uses it and currently does not redirect (it only returns `null` when “unauthorized”). For a real deployment you must:
-  - Replace the stub with your auth provider (e.g. NextAuth, Clerk, custom).
-  - Implement a `/login` (or equivalent) and have `RouteGuard` redirect unauthenticated users there.
+- **Auth uses InstantDB built-in:** The app uses InstantDB’s built-in auth with Google OAuth. `RouteGuard` uses `db.useAuth()` and redirects unauthenticated users to `/login`. The login page at `/login` calls `db.auth.signInWithProvider({ provider: "google" })`. Sign-out is in the sidebar user menu via `db.auth.signOut()` and redirect to `/login`.
+- **Setup:** In the InstantDB dashboard, add Google as an OAuth provider; configure the Google Cloud Console OAuth client with the InstantDB callback URL. See `lib/db.ts` and `LAUNCH.md` for the exact steps. No extra environment variables — `NEXT_PUBLIC_INSTANT_APP_ID` covers auth.
 
 ---
 
@@ -96,7 +95,7 @@ Before going live:
 - [ ] Run `npx instant-cli push schema` and `push perms` for the InstantDB app.
 - [ ] Implement real storage in `lib/uploadScreenshot.ts` (e.g. Vercel Blob) for brand screenshots.
 - [ ] Decide: keep brief screenshots on InstantDB storage or migrate to the same blob storage.
-- [ ] Replace `lib/auth-stub.ts` with real auth and add redirect in `RouteGuard`.
+- [ ] Configure Google OAuth in the InstantDB dashboard and Google Cloud Console (see `LAUNCH.md`).
 
 When adding generation:
 

@@ -34,8 +34,14 @@ npx instant-cli@latest push perms
 ```
 Run these from your machine so the browser login flow works. Generation needs the `project` and `projectOutput` entities and the `projectOutputs` link; if they’re missing, the progress bar will stay stuck and no outputs will appear.
 
+**Auth (Google OAuth):** To enable sign-in:
+1. In the [InstantDB dashboard](https://instantdb.com/dashboard) → your app → **Auth**, add **Google** as an OAuth provider (Client ID and Client Secret from Google Cloud Console).
+2. In the same **Auth** tab, under **Redirect Origins**, add the exact URL where the app runs. For local dev this must match your dev server port, e.g. `http://localhost:3000` or `http://localhost:3001`. A 400 on `/runtime/oauth/start` usually means this origin is missing or the port doesn’t match.
+3. In [Google Cloud Console](https://console.cloud.google.com/), create OAuth 2.0 credentials and add `https://api.instantdb.com/runtime/oauth/callback` as an Authorized redirect URI.
+4. No new env vars are required. The login page uses `db.auth.createAuthorizationURL({ clientName: "google", redirectURL })`; the client name must match the name you gave the Google client in the InstantDB dashboard (e.g. `"google"`).
+
 **Schema checklist (after push schema):** In the [InstantDB dashboard](https://instantdb.com/dashboard) → your app → Schema, confirm you have:
-- Entity **project** (with `createdAt`, `updatedAt`, `generationLog`, etc.)
+- Entity **project** (with `createdAt`, `updatedAt`, `generationLog`, `createdByEmail`, `createdByName`, etc.)
 - Entity **projectOutput** (with `projectId`, `targetType`, `briefId`, `status`, `contentJson`, `createdAt`, `updatedAt`)
 - Link **projectOutputs** (project → projectOutput, one-to-many)
 

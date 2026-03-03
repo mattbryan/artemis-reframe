@@ -264,7 +264,8 @@ const _schema = i.schema({
       updatedAt: i.number(),
     }),
 
-    /** Workbench project — one per wizard run; status draft | generating | complete | failed. */
+    /** Workbench project — one per wizard run; status draft | generating | complete | failed.
+     *  createdByEmail/createdByName are denormalized for single-tenant use; will be replaced with user links when multi-tenancy is introduced. */
     project: i.entity({
       name: i.string(),
       status: i.string(), // "draft" | "generating" | "complete" | "failed"
@@ -278,6 +279,8 @@ const _schema = i.schema({
       errorMessage: i.string().optional(),
       createdAt: i.number(),
       updatedAt: i.number(),
+      createdByEmail: i.string().optional(), // email of the user who created the project
+      createdByName: i.string().optional(), // display name if available, falls back to email
     }),
 
     /** Generated output for one output target — written by the generation API. */
