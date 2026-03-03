@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { MouseEvent } from "react";
 import { useStorageUrl } from "@/lib/hooks/useStorageUrl";
 import type { ElementalAsset } from "@/types/asset";
 
 interface AssetPreviewCardProps {
   asset: ElementalAsset;
   selected: boolean;
-  onToggleSelect: () => void;
+  onToggleSelect: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 const ASSET_TYPE_LABELS: Record<string, string> = {
@@ -39,9 +40,16 @@ export function AssetPreviewCard({ asset, selected, onToggleSelect }: AssetPrevi
   const assetTypeLabel =
     ASSET_TYPE_LABELS[asset.assetType ?? ""] ?? asset.assetType ?? "—";
   const createdAt = formatDate(asset.created_at);
-  const resolvedUrl = useStorageUrl(asset.storagePath ?? null);
+  // Legacy records may have url but no storagePath; try path we would have used at upload time.
+  const effectiveStoragePath =
+    asset.storagePath ??
+    (asset.url && asset.title
+      ? `elemental-assets/${asset.id}/${asset.title}`
+      : null);
+  const resolvedUrl = useStorageUrl(effectiveStoragePath);
   const imgSrc = resolvedUrl ?? asset.url ?? undefined;
   const [imgError, setImgError] = useState(false);
+  const isLegacyNoPath = !asset.storagePath && !!asset.url;
   const showPlaceholder = !imgSrc || imgError;
 
   return (
@@ -58,8 +66,10 @@ export function AssetPreviewCard({ asset, selected, onToggleSelect }: AssetPrevi
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted text-sm text-muted-foreground">
-            No preview
+          <div className="absolute inset-0 flex items-center justify-center bg-muted px-3 py-4 text-center text-sm text-muted-foreground">
+            {isLegacyNoPath && imgError
+              ? "Preview link expired. Re-upload this asset to restore."
+              : "No preview"}
           </div>
         )}
         <button
@@ -67,7 +77,7 @@ export function AssetPreviewCard({ asset, selected, onToggleSelect }: AssetPrevi
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onToggleSelect();
+            onToggleSelect(e);
           }}
           className="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] border border-input bg-background transition-colors hover:bg-accent"
           aria-pressed={selected}

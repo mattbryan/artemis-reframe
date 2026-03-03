@@ -44,3 +44,8 @@ export async function updateElementalAsset(
   if (Object.keys(payload).length === 0) return;
   await db.transact(db.tx.elementalAssets[assetId].update(payload));
 }
+
+/** Delete an elemental asset record. */
+export async function deleteElementalAsset(assetId: string): Promise<void> {
+  await db.transact(db.tx.elementalAssets[assetId].delete());
+}

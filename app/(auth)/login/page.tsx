@@ -38,40 +38,10 @@ function LoginPageInner() {
     setIsPending(true);
     const redirectURL = typeof window !== "undefined" ? window.location.href : "";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    // #region agent log
-    fetch("http://127.0.0.1:7351/ingest/15b2fcf1-ad78-4521-8bd0-ab3a09601be4", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "5598f1" },
-      body: JSON.stringify({
-        sessionId: "5598f1",
-        location: "login/page.tsx:handleSignIn",
-        message: "OAuth start: redirect params",
-        data: { redirectURL, origin, clientName: GOOGLE_CLIENT_NAME },
-        timestamp: Date.now(),
-        hypothesisId: "H1-H5",
-      }),
-    }).catch(() => {});
-    // #endregion
     const url = db.auth.createAuthorizationURL({
       clientName: GOOGLE_CLIENT_NAME,
       redirectURL,
     });
-    // #region agent log
-    if (typeof url === "string" && url) {
-      fetch("http://127.0.0.1:7351/ingest/15b2fcf1-ad78-4521-8bd0-ab3a09601be4", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "5598f1" },
-        body: JSON.stringify({
-          sessionId: "5598f1",
-          location: "login/page.tsx:handleSignIn:url",
-          message: "OAuth URL generated",
-          data: { urlPrefix: url.slice(0, 220), hasRedirectParam: url.includes("redirect_uri") },
-          timestamp: Date.now(),
-          hypothesisId: "H2-H4",
-        }),
-      }).catch(() => {});
-    }
-    // #endregion
     if (url && typeof window !== "undefined") {
       window.location.href = url;
     }

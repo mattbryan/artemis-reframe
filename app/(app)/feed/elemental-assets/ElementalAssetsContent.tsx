@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useState, useMemo } from "react";
 import { useElementalAssets } from "@/lib/hooks/useElementalAssets";
 import {
@@ -9,13 +10,17 @@ import {
 import { AssetPreviewCard } from "./AssetPreviewCard";
 import { BulkEditSidebar } from "./BulkEditSidebar";
 import { UploadOverlay } from "./UploadOverlay";
-import { createElementalAsset } from "@/lib/mutations/elemental-assets";
+import {
+  createElementalAsset,
+  deleteElementalAsset,
+} from "@/lib/mutations/elemental-assets";
 
 export function ElementalAssetsContent() {
   const { data: assets, isLoading, error } = useElementalAssets();
   const [searchQuery, setSearchQuery] = useState("");
   const [assetTypeFilter, setAssetTypeFilter] = useState<AssetTypeFilter>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -41,13 +46,34 @@ export function ElementalAssetsContent() {
     return list;
   }, [assets, searchQuery, assetTypeFilter]);
 
-  const toggleSelect = (id: string) => {
+  const handleSelectToggle = (
+    id: string,
+    index: number,
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    const { shiftKey } = event;
+
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+
+      if (shiftKey && lastSelectedIndex !== null && filtered.length > 0) {
+        const start = Math.min(lastSelectedIndex, index);
+        const end = Math.max(lastSelectedIndex, index);
+        for (let i = start; i <= end; i++) {
+          const assetInRange = filtered[i];
+          if (assetInRange?.id) {
+            next.add(assetInRange.id);
+          }
+        }
+      } else {
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+      }
+
       return next;
     });
+
+    setLastSelectedIndex(index);
   };
 
   const clearSelection = () => setSelectedIds(new Set());
@@ -58,10 +84,19 @@ export function ElementalAssetsContent() {
   };
 
   const handleBulkDelete = () => {
-    if (selectedIds.size === 0) return;
-    if (confirm(`Delete ${selectedIds.size} asset(s)?`)) {
-      clearSelection();
-    }
+    if (!assets || selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} asset(s)?`)) return;
+
+    const ids = Array.from(selectedIds);
+
+    Promise.all(ids.map((id) => deleteElementalAsset(id)))
+      .then(() => {
+        clearSelection();
+      })
+      .catch((err) => {
+        console.error("Bulk delete failed:", err);
+        alert("Delete failed. Please try again.");
+      });
   };
 
   const handleUpload = async (
@@ -93,12 +128,12 @@ export function ElementalAssetsContent() {
           onUploadClick={() => setUploadOpen(true)}
         />
         <div className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-          {filtered.map((asset) => (
+          {filtered.map((asset, index) => (
             <AssetPreviewCard
               key={asset.id}
               asset={asset}
               selected={selectedIds.has(asset.id)}
-              onToggleSelect={() => toggleSelect(asset.id)}
+              onToggleSelect={(event) => handleSelectToggle(asset.id, index, event)}
             />
           ))}
         </div>
