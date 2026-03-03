@@ -12,7 +12,7 @@ import { parseOutputTargets } from "@/lib/collateralTypeUtils";
 
 export function ExportCoworkButton() {
   const [loading, setLoading] = useState(false);
-  const { brand, voice, visual, screenshots: brandScreenshots, personas } = useBrand();
+  const { brand, voice, visual, screenshots: brandScreenshots, logos: brandLogos, personas } = useBrand();
   const { rules } = usePolicies();
   const { data: collateralTypes } = useCollateralTypes();
 
@@ -141,6 +141,7 @@ export function ExportCoworkButton() {
               }
             : null,
         brandScreenshotUrls,
+        brandLogos: brandLogos.map((l) => ({ url: l.url, context: l.context })),
         policies,
         briefs,
         collateralTypes: collateralTypesList,
@@ -155,6 +156,7 @@ export function ExportCoworkButton() {
     visual,
     personas,
     brandScreenshots,
+    brandLogos,
     briefsData,
     rules,
     collateralTypes,

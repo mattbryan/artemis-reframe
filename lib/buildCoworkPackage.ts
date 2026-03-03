@@ -11,6 +11,7 @@ export type ProjectCoworkInput = {
   targetType: string;
   brand: { philosophy?: string; voice?: string; visual?: string; personas?: string } | null;
   brandScreenshotUrls: string[];
+  brandLogos: Array<{ url: string; context: "light" | "dark" }>;
   policies: Array<{ title: string; body: string }>;
   brief: {
     name: string;
@@ -33,6 +34,7 @@ export type ProjectCoworkInput = {
 export type BrandCoworkInput = {
   brand: { philosophy?: string; voice?: string; visual?: string; personas?: string } | null;
   brandScreenshotUrls: string[];
+  brandLogos: Array<{ url: string; context: "light" | "dark" }>;
   policies: Array<{ title: string; body: string }>;
   briefs: Array<{
     name: string;
@@ -61,14 +63,16 @@ function dateSegment(isoDate: string): string {
   }
 }
 
-/** Fetch image via server proxy (avoids CORS). blob: URLs are skipped (e.g. brand screenshot stub). */
+/** Fetch image: blob URLs client-side only (no proxy); storage URLs via server proxy to avoid CORS. */
 async function fetchImageBuffer(url: string): Promise<ArrayBuffer | null> {
-  if (url.startsWith("blob:")) return null;
   try {
-    const proxiedUrl = `/api/image-proxy?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxiedUrl);
-    if (!res.ok) return null;
-    return await res.arrayBuffer();
+    if (url.startsWith("blob:")) {
+      const res = await fetch(url);
+      return res.ok ? await res.arrayBuffer() : null;
+    }
+    const proxied = `/api/image-proxy?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxied);
+    return res.ok ? await res.arrayBuffer() : null;
   } catch {
     return null;
   }
@@ -94,6 +98,14 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
     "",
     "## Brand Personas",
     input.brand?.personas ?? "",
+    "",
+    "## Brand Logos",
+    "Logo files are included in brand/logos/. Light background variants: " +
+      String(input.brandLogos.filter((l) => l.context === "light").length) +
+      ". Dark background variants: " +
+      String(input.brandLogos.filter((l) => l.context === "dark").length) +
+      ".",
+    "Use the appropriate variant based on the background of the layout being created.",
     "",
     "---",
     "",
@@ -133,6 +145,7 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
   lines.push("## Reference Images", "");
   lines.push("Images are included in the images/ subdirectories alongside this file.");
   lines.push("Brand screenshots: brand/screenshots/");
+  lines.push("Brand logos: brand/logos/");
   lines.push("Brief screenshots: design-brief/screenshots/");
   lines.push("Project images: project/images/");
   return lines.join("\n");
@@ -159,6 +172,14 @@ function buildBrandContextMd(input: BrandCoworkInput): string {
     "## Brand Personas",
     input.brand?.personas ?? "",
     "",
+    "## Brand Logos",
+    "Logo files are included in brand/logos/. Light background variants: " +
+      String(input.brandLogos.filter((l) => l.context === "light").length) +
+      ". Dark background variants: " +
+      String(input.brandLogos.filter((l) => l.context === "dark").length) +
+      ".",
+    "Use the appropriate variant based on the background of the layout being created.",
+    "",
     "---",
     "",
   ];
@@ -183,6 +204,7 @@ function buildBrandContextMd(input: BrandCoworkInput): string {
   lines.push("", "---", "");
   lines.push("## Reference Images", "");
   lines.push("Brand screenshots: brand/screenshots/");
+  lines.push("Brand logos: brand/logos/");
   lines.push("Brief screenshots: design-brief/screenshots/ (per brief)");
   return lines.join("\n");
 }
@@ -221,6 +243,33 @@ async function addImagesToZip(
       const num = String(i + 1).padStart(4, "0");
       zip.file(`${folderPath}/${num}.jpg`, buf);
     }
+  }
+}
+
+const LOGO_CONTEXT_LABEL: Record<"light" | "dark", string> = {
+  light: "Light backgrounds",
+  dark: "Dark backgrounds",
+};
+
+/** Add brand logos to zip: brand/logos/ with logo-{context}-0001.png and index.md. */
+async function addLogosToZip(
+  zip: JSZip,
+  folderPath: string,
+  brandLogos: Array<{ url: string; context: "light" | "dark" }>
+): Promise<void> {
+  const indexLines: string[] = [];
+  const counters: Record<"light" | "dark", number> = { light: 0, dark: 0 };
+  for (const logo of brandLogos) {
+    const buf = await fetchImageBuffer(logo.url);
+    if (!buf) continue;
+    counters[logo.context]++;
+    const num = String(counters[logo.context]).padStart(4, "0");
+    const filename = `logo-${logo.context}-${num}.png`;
+    zip.file(`${folderPath}/${filename}`, buf);
+    indexLines.push(`${filename} — ${LOGO_CONTEXT_LABEL[logo.context]}`);
+  }
+  if (indexLines.length > 0) {
+    zip.file(`${folderPath}/index.md`, indexLines.join("\n"));
   }
 }
 
@@ -300,6 +349,7 @@ export async function buildProjectCoworkPackage(input: ProjectCoworkInput): Prom
   zip.file(`${root}/project/project-info.md`, projectInfoMd);
 
   await addImagesToZip(zip, `${root}/brand/screenshots`, input.brandScreenshotUrls);
+  await addLogosToZip(zip, `${root}/brand/logos`, input.brandLogos);
   await addImagesToZip(zip, `${root}/design-brief/screenshots`, input.briefScreenshotUrls);
   const projectImageUrls = input.projectImages.map((i) => i.url);
   await addImagesToZip(zip, `${root}/project/images`, projectImageUrls);
@@ -378,6 +428,7 @@ export async function buildBrandCoworkPackage(input: BrandCoworkInput): Promise<
   zip.file(`${root}/policies/rules.md`, rulesMd);
 
   await addImagesToZip(zip, `${root}/brand/screenshots`, input.brandScreenshotUrls);
+  await addLogosToZip(zip, `${root}/brand/logos`, input.brandLogos);
 
   const blob = await zip.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(blob);
