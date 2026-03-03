@@ -8,6 +8,7 @@ export const OUTPUT_TARGET_TYPES = [
   "web-html",
   "social-image",
   "email-html",
+  "cowork-package",
 ] as const;
 
 export type OutputTargetType = (typeof OUTPUT_TARGET_TYPES)[number];

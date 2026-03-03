@@ -13,6 +13,7 @@ export function formatTargetType(targetType: string): string {
     "web-html": "Web HTML",
     "social-image": "Social Image",
     "email-html": "Email HTML",
+    "cowork-package": "Cowork Package",
   };
   return labels[targetType] ?? targetType;
 }

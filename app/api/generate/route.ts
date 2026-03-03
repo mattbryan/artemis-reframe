@@ -89,6 +89,37 @@ export async function POST(request: Request): Promise<Response> {
         continue;
       }
 
+      if (targetType === "cowork-package") {
+        const outputId = id();
+        const emptyContent = {
+          targetType: "cowork-package",
+          headline: "",
+          subheadline: "",
+          sections: [],
+          assetRecommendations: [],
+          generationNotes: "",
+        };
+        await adminDb.transact([
+          adminDb.tx.projectOutput[outputId].update({
+            projectId,
+            targetType,
+            briefId,
+            status: "complete",
+            contentJson: emptyContent as unknown as Record<string, unknown>,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          }),
+          adminDb.tx.projectOutput[outputId].link({ project: projectId }),
+          adminDb.tx.project[projectId].link({ outputs: outputId }),
+        ]);
+        await appendGenerationLog(
+          projectId,
+          `${formatTargetType(targetType)} complete ✓`
+        );
+        completedCount++;
+        continue;
+      }
+
       let systemPrompt: string | undefined;
       let userPrompt: string | undefined;
 

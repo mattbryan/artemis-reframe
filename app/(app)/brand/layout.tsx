@@ -7,6 +7,7 @@ import { useBrandStore } from "@/store/brandStore";
 import { createBrand } from "@/lib/mutations/brand";
 import { BrandTabBar } from "@/components/brand/BrandTabBar";
 import { SaveIndicator } from "@/components/brand/SaveIndicator";
+import { ExportCoworkButton } from "@/components/brand/ExportCoworkButton";
 
 function BrandLayoutInner({
   children,
@@ -64,6 +65,7 @@ function BrandLayoutInner({
           Define how this brand thinks, sounds, and presents.
         </p>
         <div className="ml-auto flex items-center gap-2">
+          <ExportCoworkButton />
           <SaveIndicator />
           {lastSaved && (
             <span className="text-xs text-muted-foreground">

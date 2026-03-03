@@ -7,6 +7,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { EditorToolbar } from "./EditorToolbar";
 import { LeftPanel } from "./LeftPanel";
 import { RightPanel } from "./RightPanel";
+import { CoworkPackageView } from "./CoworkPackageView";
 import type { Project, ProjectOutput, ProjectOutputApprovalStatus } from "@/types/project";
 import type { GeneratedOutputContent } from "@/types/generation";
 import type { OutputTargetType } from "@/types/collateralType";
@@ -393,6 +394,8 @@ export default function EditorPage() {
     sectionName: s.sectionName,
   }));
 
+  const isCoworkPackage = targetType === "cowork-package";
+
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <EditorToolbar
@@ -405,21 +408,26 @@ export default function EditorPage() {
         onRegenerateAll={handleRegenerateAll}
         onExportPdf={handleExportPdf}
         regeneratingSectionId={regeneratingSectionId}
+        isCoworkPackage={isCoworkPackage}
       />
-      <div className="flex flex-1 min-h-0">
-        <LeftPanel
-          outputId={outputId}
-          sections={sections}
-          activeSectionId={activeSectionId}
-          onSectionInView={setActiveSectionId}
-          regeneratingSectionId={regeneratingSectionId}
-        />
-        <RightPanel
-          outputId={outputId}
-          content={content}
-          activeSectionId={activeSectionId}
-        />
-      </div>
+      {isCoworkPackage ? (
+        <CoworkPackageView project={project} output={output} />
+      ) : (
+        <div className="flex flex-1 min-h-0">
+          <LeftPanel
+            outputId={outputId}
+            sections={sections}
+            activeSectionId={activeSectionId}
+            onSectionInView={setActiveSectionId}
+            regeneratingSectionId={regeneratingSectionId}
+          />
+          <RightPanel
+            outputId={outputId}
+            content={content}
+            activeSectionId={activeSectionId}
+          />
+        </div>
+      )}
       <Dialog
         open={!!regenerateSectionDialog}
         onOpenChange={(open) => !open && setRegenerateSectionDialog(null)}

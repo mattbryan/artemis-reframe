@@ -43,6 +43,8 @@ interface EditorToolbarProps {
   onRegenerateAll: () => void;
   onExportPdf: () => void;
   regeneratingSectionId: string | null;
+  /** When true, hide Regenerate Section, Regenerate All, Export PDF (and optionally Save). */
+  isCoworkPackage?: boolean;
 }
 
 export function EditorToolbar({
@@ -55,6 +57,7 @@ export function EditorToolbar({
   onRegenerateAll,
   onExportPdf,
   regeneratingSectionId,
+  isCoworkPackage = false,
 }: EditorToolbarProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -187,24 +190,26 @@ export function EditorToolbar({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSave}
-            disabled={!unsaved || saving}
-          >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                {unsaved && (
-                  <span className="mr-1.5 h-2 w-2 rounded-full bg-amber-500" />
-                )}
-                <Save className="mr-1.5 h-4 w-4" />
-                Save
-              </>
-            )}
-          </Button>
+          {!isCoworkPackage && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSave}
+              disabled={!unsaved || saving}
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  {unsaved && (
+                    <span className="mr-1.5 h-2 w-2 rounded-full bg-amber-500" />
+                  )}
+                  <Save className="mr-1.5 h-4 w-4" />
+                  Save
+                </>
+              )}
+            </Button>
+          )}
 
           {savedToast && (
             <span className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
@@ -231,40 +236,44 @@ export function EditorToolbar({
             )}
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" disabled={!!regeneratingSectionId}>
-                {regeneratingSectionId ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    Regenerate section
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </>
-                )}
+          {!isCoworkPackage && (
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={!!regeneratingSectionId}>
+                    {regeneratingSectionId ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        Regenerate section
+                        <ChevronDown className="ml-1 h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {sectionNames.map(({ sectionId, sectionName }) => (
+                    <DropdownMenuItem
+                      key={sectionId}
+                      onSelect={() => onRegenerateSection(sectionId)}
+                    >
+                      {sectionName}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button variant="outline" size="sm" onClick={onRegenerateAll}>
+                <RefreshCw className="mr-1.5 h-4 w-4" />
+                Regenerate all
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {sectionNames.map(({ sectionId, sectionName }) => (
-                <DropdownMenuItem
-                  key={sectionId}
-                  onSelect={() => onRegenerateSection(sectionId)}
-                >
-                  {sectionName}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
 
-          <Button variant="outline" size="sm" onClick={onRegenerateAll}>
-            <RefreshCw className="mr-1.5 h-4 w-4" />
-            Regenerate all
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={onExportPdf}>
-            <FileDown className="mr-1.5 h-4 w-4" />
-            Export PDF
-          </Button>
+              <Button variant="outline" size="sm" onClick={onExportPdf}>
+                <FileDown className="mr-1.5 h-4 w-4" />
+                Export PDF
+              </Button>
+            </>
+          )}
         </div>
       </header>
 

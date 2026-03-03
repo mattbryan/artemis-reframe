@@ -79,6 +79,7 @@ export const OUTPUT_TARGET_LABELS: Record<string, string> = {
   "web-html": "Web Page",
   "social-image": "Social",
   "email-html": "Email",
+  "cowork-package": "Cowork Package",
 };
 
 /** Human-readable label for generation log and progress UI (spec: Print PDF, Web HTML, etc.). */
@@ -88,6 +89,7 @@ export function formatTargetType(targetType: string): string {
     "web-html": "Web HTML",
     "social-image": "Social Image",
     "email-html": "Email HTML",
+    "cowork-package": "Cowork Package",
   };
   return map[targetType] ?? targetType;
 }
@@ -97,4 +99,5 @@ export const OUTPUT_TARGET_BADGE_CLASS: Record<string, string> = {
   "web-html": "bg-blue-500/20 text-blue-700 dark:text-blue-400",
   "social-image": "bg-purple-500/20 text-purple-700 dark:text-purple-400",
   "email-html": "bg-green-500/20 text-green-700 dark:text-green-400",
+  "cowork-package": "bg-blue-500/20 text-blue-700 dark:text-blue-400",
 };
