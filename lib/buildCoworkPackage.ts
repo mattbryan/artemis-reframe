@@ -78,6 +78,25 @@ async function fetchImageBuffer(url: string): Promise<ArrayBuffer | null> {
   }
 }
 
+const GENERATION_RULES_BLOCK = [
+  "## Generation Rules",
+  "",
+  "These rules apply to all content created from this package:",
+  "",
+  "### PDF Output",
+  "- Default orientation is **Landscape** unless the project information explicitly requests portrait.",
+  "- Do not overlap text layers under any circumstances. If a layout feels too dense, reduce content, increase spacing, or break into additional pages — do not stack or z-index text elements.",
+  "- Avoid dynamic or fluid layout techniques that risk text collision. Prefer fixed, grid-based layouts with explicit positioning.",
+  "",
+  "### General",
+  "- Treat the Brand Guidelines, Design Brief, and Policy Rules sections as hard constraints, not suggestions.",
+  "- Treat the Project Information section as the specific brief for this generation run.",
+  "- When in doubt about tone or visual direction, defer to the Design Brief over general brand guidelines.",
+  "",
+  "---",
+  "",
+];
+
 function buildProjectContextMd(input: ProjectCoworkInput): string {
   const date = dateSegment(input.generatedAt);
   const lines: string[] = [
@@ -87,7 +106,10 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
     "",
     "---",
     "",
+    ...GENERATION_RULES_BLOCK,
     "## Brand Philosophy",
+    "_Use this to establish voice, tone, and visual boundaries. These are non-negotiable constraints._",
+    "",
     input.brand?.philosophy ?? "Not configured",
     "",
     "## Brand Voice & Tone",
@@ -113,6 +135,7 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
 
   if (input.brief) {
     lines.push(`## Design Brief: ${input.brief.name}`, "");
+    lines.push("_Use this as the primary creative direction for this output. It overrides general brand defaults where they conflict._", "");
     lines.push("**Description:**", input.brief.description ?? "", "");
     lines.push("**Target Audience:**", input.brief.audience ?? "", "");
     lines.push("**Guidelines:**", input.brief.guidelines ?? "", "");
@@ -124,6 +147,7 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
   }
 
   lines.push("## Collateral Type: " + input.collateralTypeName, "");
+  lines.push("_Use this to understand the structural requirements and intended purpose of the asset being created._", "");
   lines.push("**Description:**", input.collateralTypeDef?.description ?? "", "");
   lines.push("**AI Intent:**", input.collateralTypeDef?.aiIntent ?? "", "");
   lines.push("### Output Sections", "");
@@ -132,10 +156,12 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
   }
   lines.push("---", "");
   lines.push("## Policies & Rules", "");
+  lines.push("_These are hard rules. Do not violate them regardless of other instructions._", "");
   for (const p of input.policies) {
     lines.push(`### ${p.title}`, p.body, "");
   }
   lines.push("## Project Information", "");
+  lines.push("_This is the specific input for this generation run — the \"brief\" in the traditional sense._", "");
   for (const [key, value] of Object.entries(input.projectFormData)) {
     lines.push(`${key}: ${value}`);
   }
@@ -160,7 +186,10 @@ function buildBrandContextMd(input: BrandCoworkInput): string {
     "",
     "---",
     "",
+    ...GENERATION_RULES_BLOCK,
     "## Brand Philosophy",
+    "_Use this to establish voice, tone, and visual boundaries. These are non-negotiable constraints._",
+    "",
     input.brand?.philosophy ?? "Not configured",
     "",
     "## Brand Voice & Tone",
@@ -186,6 +215,7 @@ function buildBrandContextMd(input: BrandCoworkInput): string {
 
   for (const b of input.briefs) {
     lines.push(`## Design Brief: ${b.name}`, "");
+    lines.push("_Use this as the primary creative direction for this output. It overrides general brand defaults where they conflict._", "");
     lines.push("**Description:**", b.description ?? "", "");
     lines.push("**Target Audience:**", b.audience ?? "", "");
     lines.push("**Guidelines:**", b.guidelines ?? "", "");
@@ -193,11 +223,13 @@ function buildBrandContextMd(input: BrandCoworkInput): string {
   }
 
   lines.push("## Collateral Types", "");
+  lines.push("_Use this to understand the structural requirements and intended purpose of the asset being created._", "");
   for (const ct of input.collateralTypes) {
     lines.push(`- **${ct.name}**: ${ct.description ?? ""} (targets: ${(ct.targets ?? []).join(", ")})`, "");
   }
   lines.push("---", "");
   lines.push("## Policies & Rules", "");
+  lines.push("_These are hard rules. Do not violate them regardless of other instructions._", "");
   for (const p of input.policies) {
     lines.push(`### ${p.title}`, p.body, "");
   }
@@ -220,6 +252,11 @@ Generated: ${date}
 3. In your first message, tell Claude:
    "I've uploaded a Cowork Package from Artemis Reframe. Use the context.md as 
    your brand and project brief. I'd like you to help me create [describe what you need]."
+
+### PDF generation
+When creating PDFs, default to **landscape orientation** unless the project information
+specifies portrait. Avoid overlapping text — use fixed grid layouts and add pages
+rather than compressing content.
 
 ## What's included
 - context.md — Master context document (start here)
