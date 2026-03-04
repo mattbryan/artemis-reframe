@@ -98,4 +98,5 @@ export type CollateralTabId =
   | "sections"
   | "fields"
   | "media"
-  | "output-targets";
+  | "output-targets"
+  | "audience";

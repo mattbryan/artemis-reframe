@@ -398,6 +398,12 @@ const _schema = i.schema({
       reverse: { on: "collateralMediaField", has: "one", label: "collateralType" },
     },
 
+    /** CollateralType ↔ BrandPersona: many-to-many */
+    collateralTypePersonas: {
+      forward: { on: "collateralType", has: "many", label: "personas" },
+      reverse: { on: "brandPersona", has: "many", label: "collateralTypes" },
+    },
+
     /** Project → ProjectOutput: one-to-many */
     projectOutputs: {
       forward: { on: "project", has: "many", label: "outputs" },

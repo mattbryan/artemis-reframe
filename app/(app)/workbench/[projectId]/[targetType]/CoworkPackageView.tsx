@@ -63,7 +63,7 @@ export function CoworkPackageView({ project, output }: CoworkPackageViewProps) {
 
   const { brand, voice, visual, screenshots: brandScreenshots, logos: brandLogos, personas } = useBrand();
   const { rules } = usePolicies();
-  const { type: collateralType } = useCollateralType(project.collateralTypeSlug || null);
+  const { type: collateralType, linkedPersonaIds } = useCollateralType(project.collateralTypeSlug || null);
   const briefData = useBriefById(output.briefId || null);
 
   const policies = useMemo(() => {
@@ -197,6 +197,15 @@ export function CoworkPackageView({ project, output }: CoworkPackageViewProps) {
           url: projectImageUrls[i] ?? img.url,
         })),
         generatedAt: new Date().toISOString(),
+        selectedPersonaIds: linkedPersonaIds.length > 0 ? linkedPersonaIds : undefined,
+        brandPersonas: personas.map((p) => ({
+          id: p.id,
+          name: p.name,
+          personaType: p.personaType,
+          priorities: p.priorities,
+          resonantLanguage: p.resonantLanguage,
+          avoidedLanguage: p.avoidedLanguage,
+        })),
       };
 
       await buildProjectCoworkPackage(input);
@@ -212,6 +221,7 @@ export function CoworkPackageView({ project, output }: CoworkPackageViewProps) {
     voice,
     visual,
     personas,
+    linkedPersonaIds,
     brandScreenshots,
     brandLogos,
     briefData,

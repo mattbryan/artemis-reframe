@@ -38,9 +38,12 @@ function safeParseFieldValues(fieldValuesJson: string): string {
 /**
  * Assemble brand context for prompt building. Includes visual block only for
  * print-pdf and social-image targets.
+ * When collateralTypeId is provided, only personas linked to that collateral type
+ * are included; if none are linked, all brand personas are included (fallback).
  */
 export async function assembleBrandContext(
-  targetType: OutputTargetType
+  targetType: OutputTargetType,
+  collateralTypeId?: string
 ): Promise<BrandContextBlock> {
   const result = await adminDb.query({
     brand: {
@@ -60,8 +63,30 @@ export async function assembleBrandContext(
   const voice = Array.isArray(voiceRaw) ? voiceRaw[0] : voiceRaw;
   const visualRaw = brandRow.visual;
   const visual = Array.isArray(visualRaw) ? visualRaw[0] : visualRaw;
-  const personasRaw = brandRow.personas ?? [];
-  const personas = Array.isArray(personasRaw) ? personasRaw : Object.values(personasRaw);
+  let personasRaw = brandRow.personas ?? [];
+  let personas = Array.isArray(personasRaw) ? personasRaw : Object.values(personasRaw);
+
+  if (collateralTypeId) {
+    const ctResult = await adminDb.query({
+      collateralType: {
+        $: { where: { id: collateralTypeId } },
+        personas: {},
+      },
+    });
+    const ctRow = ctResult.collateralType?.[0] as Record<string, unknown> | undefined;
+    const linkedRaw = ctRow?.personas ?? [];
+    const linkedList = Array.isArray(linkedRaw) ? linkedRaw : Object.values(linkedRaw);
+    const linkedIds = new Set(
+      (linkedList as Array<{ id?: string }>)
+        .map((p) => p?.id)
+        .filter((id): id is string => typeof id === "string")
+    );
+    if (linkedIds.size > 0) {
+      personas = (personas as Array<Record<string, unknown>>).filter((p) =>
+        linkedIds.has(String(p.id))
+      );
+    }
+  }
 
   const policyResult = await adminDb.query({
     policyRule: { $: { where: { isActive: true } } },

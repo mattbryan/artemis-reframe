@@ -31,6 +31,7 @@ export function useCollateralType(slug: string | null): {
   sections: CollateralSection[];
   globalFields: CollateralGlobalField[];
   mediaFields: CollateralMediaField[];
+  linkedPersonaIds: string[];
   isLoading: boolean;
   error: Error | null;
 } {
@@ -42,6 +43,7 @@ export function useCollateralType(slug: string | null): {
         sections: { $: { order: { order: "asc" as const } } },
         globalFields: { $: { order: { order: "asc" as const } } },
         mediaFields: { $: { order: { order: "asc" as const } } },
+        personas: {},
       },
     };
   }, [slug]);
@@ -55,6 +57,7 @@ export function useCollateralType(slug: string | null): {
         sections: [],
         globalFields: [],
         mediaFields: [],
+        linkedPersonaIds: [],
         isLoading,
         error:
           error != null
@@ -72,6 +75,7 @@ export function useCollateralType(slug: string | null): {
         sections: [],
         globalFields: [],
         mediaFields: [],
+        linkedPersonaIds: [],
         isLoading,
         error: null,
       };
@@ -80,6 +84,15 @@ export function useCollateralType(slug: string | null): {
     const sectionsRaw = (t.sections ?? []) as Array<Record<string, unknown>>;
     const globalFieldsRaw = (t.globalFields ?? []) as Array<Record<string, unknown>>;
     const mediaFieldsRaw = (t.mediaFields ?? []) as Array<Record<string, unknown>>;
+    const personasRaw = t.personas;
+    const personasList = Array.isArray(personasRaw)
+      ? (personasRaw as Array<Record<string, unknown>>)
+      : personasRaw != null && typeof personasRaw === "object"
+        ? (Object.values(personasRaw) as Array<Record<string, unknown>>)
+        : [];
+    const linkedPersonaIds = personasList
+      .map((p) => (typeof p?.id === "string" ? p.id : undefined))
+      .filter((id): id is string => id != null);
 
     const sections: (CollateralSection & { fieldsParsed: ReturnType<typeof parseSectionFields> })[] = sectionsRaw.map((s) => {
       const fieldsJson = (s.fields as string) ?? "[]";
@@ -144,6 +157,7 @@ export function useCollateralType(slug: string | null): {
       sections,
       globalFields,
       mediaFields,
+      linkedPersonaIds,
       isLoading,
       error:
         error != null

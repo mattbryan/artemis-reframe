@@ -8,6 +8,7 @@ import { TypeSectionsTab } from "./TypeSectionsTab";
 import { TypeFieldsTab } from "./TypeFieldsTab";
 import { TypeMediaTab } from "./TypeMediaTab";
 import { TypeOutputTargetsTab } from "./TypeOutputTargetsTab";
+import { TypeAudienceTab } from "./TypeAudienceTab";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
@@ -19,6 +20,7 @@ const TABS: { id: CollateralTabId; label: string }[] = [
   { id: "fields", label: "Fields" },
   { id: "media", label: "Media" },
   { id: "output-targets", label: "Output Targets" },
+  { id: "audience", label: "Audience" },
 ];
 
 interface TypeDetailPanelProps {
@@ -26,7 +28,7 @@ interface TypeDetailPanelProps {
 }
 
 export function TypeDetailPanel({ slug }: TypeDetailPanelProps) {
-  const { type, isLoading, error } = useCollateralType(slug);
+  const { type, linkedPersonaIds, isLoading, error } = useCollateralType(slug);
   const activeTab = useCollateralTypeStore((s) => s.activeTab);
   const setActiveTab = useCollateralTypeStore((s) => s.setActiveTab);
 
@@ -99,6 +101,12 @@ export function TypeDetailPanel({ slug }: TypeDetailPanelProps) {
         {activeTab === "fields" && <TypeFieldsTab type={type} />}
         {activeTab === "media" && <TypeMediaTab type={type} />}
         {activeTab === "output-targets" && <TypeOutputTargetsTab type={type} />}
+        {activeTab === "audience" && (
+          <TypeAudienceTab
+            collateralTypeId={type.id}
+            linkedPersonaIds={linkedPersonaIds}
+          />
+        )}
       </div>
     </div>
   );

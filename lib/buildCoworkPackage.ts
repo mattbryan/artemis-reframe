@@ -29,6 +29,17 @@ export type ProjectCoworkInput = {
   projectFormData: Record<string, string>;
   projectImages: Array<{ label: string; url: string }>;
   generatedAt: string;
+  /** When set and non-empty, only these personas are included in the package; otherwise all personas. */
+  selectedPersonaIds?: string[];
+  /** Full list of brand personas; used with selectedPersonaIds to build filtered personas section. */
+  brandPersonas?: Array<{
+    id: string;
+    name: string;
+    personaType: string;
+    priorities: string;
+    resonantLanguage: string;
+    avoidedLanguage: string;
+  }>;
 };
 
 export type BrandCoworkInput = {
@@ -45,6 +56,8 @@ export type BrandCoworkInput = {
   }>;
   collateralTypes: Array<{ name: string; description?: string; targets: string[] }>;
   generatedAt: string;
+  /** When set and non-empty, only these personas are included; empty/omit = all personas. */
+  selectedPersonaIds?: string[];
 };
 
 function safeSlug(name: string): string {
@@ -61,6 +74,28 @@ function dateSegment(isoDate: string): string {
   } catch {
     return new Date().toISOString().slice(0, 10);
   }
+}
+
+function formatPersonasForContext(
+  input: Pick<ProjectCoworkInput, "brand" | "selectedPersonaIds" | "brandPersonas">
+): string {
+  const { brandPersonas, selectedPersonaIds } = input;
+  if (
+    brandPersonas &&
+    selectedPersonaIds &&
+    selectedPersonaIds.length > 0
+  ) {
+    const set = new Set(selectedPersonaIds);
+    const filtered = brandPersonas.filter((p) => set.has(p.id));
+    return filtered
+      .map(
+        (p) =>
+          `${p.name} (${p.personaType}): ${p.priorities || ""} ${p.resonantLanguage || ""} ${p.avoidedLanguage || ""}`
+      )
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  return input.brand?.personas ?? "";
 }
 
 /** Fetch image: blob URLs client-side only (no proxy); storage URLs via server proxy to avoid CORS. */
@@ -119,7 +154,7 @@ function buildProjectContextMd(input: ProjectCoworkInput): string {
     input.brand?.visual ?? "",
     "",
     "## Brand Personas",
-    input.brand?.personas ?? "",
+    formatPersonasForContext(input),
     "",
     "## Brand Logos",
     "Logo files are included in brand/logos/. Light background variants: " +
@@ -334,7 +369,7 @@ export async function buildProjectCoworkPackage(input: ProjectCoworkInput): Prom
     input.brand?.visual ?? "",
     "",
     "## Personas",
-    input.brand?.personas ?? "",
+    formatPersonasForContext(input),
   ].join("\n");
   zip.file(`${root}/brand/guidelines.md`, brandPhilosophy);
 

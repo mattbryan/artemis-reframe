@@ -131,7 +131,7 @@ export async function POST(request: Request): Promise<Response> {
 
         const [brandCtx, collateralCtx, projectInput, briefCtx] =
           await Promise.all([
-            assembleBrandContext(targetType),
+            assembleBrandContext(targetType, project.collateralTypeId),
             assembleCollateralContext(project.collateralTypeId),
             assembleProjectInput(project as Project, collateralType as unknown as Parameters<typeof assembleProjectInput>[1]),
             assembleDesignBriefContext(briefId),
