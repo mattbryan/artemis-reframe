@@ -9,6 +9,27 @@ import type { FieldDef } from "@/types/policy";
 
 const now = () => Date.now();
 
+function defaultFieldsForCustomType(): FieldDef[] {
+  return [
+    {
+      id: id(),
+      label: "Rule Name",
+      fieldType: "text",
+      helperText: "",
+      required: true,
+      order: 0,
+    },
+    {
+      id: id(),
+      label: "Guidance",
+      fieldType: "textarea",
+      helperText: "Describe the mandate or requirement this rule enforces.",
+      required: true,
+      order: 1,
+    },
+  ];
+}
+
 // ——— Type schema ———
 
 export async function createPolicyTypeSchema(params: {
@@ -22,7 +43,7 @@ export async function createPolicyTypeSchema(params: {
       typeKey: params.typeKey,
       label: params.label,
       description: params.description,
-      fields: "[]",
+      fields: JSON.stringify(defaultFieldsForCustomType()),
       isDefault: false,
       order: 999,
       isActive: true,
@@ -48,6 +69,19 @@ export async function updatePolicyTypeSchema(
 
 export async function setPolicyTypeSchemaActive(schemaId: string, isActive: boolean): Promise<void> {
   await db.transact(db.tx.policyTypeSchema[schemaId].update({ isActive }));
+}
+
+export async function ensureCustomTypeHasDefaultFields(schemaId: string): Promise<void> {
+  const { data } = await db.queryOnce({
+    policyTypeSchema: { $: { where: { id: schemaId } } },
+  } as Parameters<typeof db.queryOnce>[0]);
+  const raw = data?.policyTypeSchema;
+  const row = Array.isArray(raw) ? raw[0] : (raw as Record<string, { fields?: string }> | undefined)?.[schemaId];
+  const fieldsJson = (row as { fields?: string } | undefined)?.fields ?? "[]";
+  const existing = parsePolicyFields(fieldsJson);
+  if (existing.length > 0) return;
+  const fields = defaultFieldsForCustomType();
+  await db.transact(db.tx.policyTypeSchema[schemaId].update({ fields: JSON.stringify(fields) }));
 }
 
 export async function deletePolicyTypeSchema(schemaId: string): Promise<void> {

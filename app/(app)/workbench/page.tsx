@@ -9,7 +9,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { id } from "@instantdb/react";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
@@ -438,7 +437,6 @@ export default function WorkbenchPage() {
             <tbody>
               {sortedProjects.map((p) => {
                 const projectForResume = projectToProject(p);
-                const isDraft = p.status === "draft";
                 const generationDate =
                   p.status === "generating"
                     ? "In progress…"
@@ -458,30 +456,17 @@ export default function WorkbenchPage() {
                   >
                     <td className="px-4 py-3 text-sm">
                       <div className="flex items-center gap-2">
-                        {isDraft ? (
-                          <button
-                            type="button"
-                            onClick={() => handleResumeDraft(projectForResume)}
-                            className="font-medium text-foreground hover:underline underline-offset-2 cursor-pointer text-left"
-                          >
-                            {p.name?.trim() ? (
-                              p.name
-                            ) : (
-                              <span className="text-muted-foreground">Untitled</span>
-                            )}
-                          </button>
-                        ) : (
-                          <Link
-                            href={`/workbench/${p.id}`}
-                            className="font-medium text-foreground hover:underline underline-offset-2 cursor-pointer"
-                          >
-                            {p.name?.trim() ? (
-                              p.name
-                            ) : (
-                              <span className="text-muted-foreground">Untitled</span>
-                            )}
-                          </Link>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleResumeDraft(projectForResume)}
+                          className="font-medium text-foreground hover:underline underline-offset-2 cursor-pointer text-left"
+                        >
+                          {p.name?.trim() ? (
+                            p.name
+                          ) : (
+                            <span className="text-muted-foreground">Untitled</span>
+                          )}
+                        </button>
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[p.status] ?? STATUS_BADGE_CLASS.draft}`}
                         >

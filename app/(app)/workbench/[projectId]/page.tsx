@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { GenerationProgressDialog } from "../wizard/GenerationProgressDialog";
@@ -147,7 +147,6 @@ function getProjectWithOutputs(
 
 export default function WorkbenchProjectPage() {
   const params = useParams();
-  const router = useRouter();
   const projectId = typeof params.projectId === "string" ? params.projectId : "";
   const [progressDismissed, setProgressDismissed] = useState(false);
 
@@ -189,15 +188,6 @@ export default function WorkbenchProjectPage() {
       outputs = normalizeOutputs({ outputs: list });
     }
   }
-
-  // Auto-redirect when complete and exactly one output
-  useEffect(() => {
-    if (!projectId || !project || project.status !== "complete") return;
-    if (outputs.length === 1) {
-      const targetType = encodeURIComponent(outputs[0].targetType);
-      router.replace(`/workbench/${projectId}/${targetType}`);
-    }
-  }, [projectId, project?.status, outputs.length, router]);
 
   if (!projectId) {
     return (

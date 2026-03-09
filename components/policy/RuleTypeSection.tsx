@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { usePolicyStore } from "@/store/policyStore";
 import { usePolicies, getFieldsForSchema } from "@/lib/hooks/usePolicies";
-import { createPolicyRule, updatePolicyTypeSchema } from "@/lib/mutations/policy";
+import { createPolicyRule, updatePolicyTypeSchema, ensureCustomTypeHasDefaultFields } from "@/lib/mutations/policy";
 import { RuleTypeSectionHeader } from "./RuleTypeSectionHeader";
 import { RuleCard } from "./RuleCard";
 import { EditFieldsPanel } from "./EditFieldsPanel";
@@ -68,6 +68,12 @@ export function RuleTypeSection({ typeSchema }: RuleTypeSectionProps) {
   }
 
   const fields = getFieldsForSchema(typeSchema);
+
+  useEffect(() => {
+    if (typeSchema.isDefault) return;
+    if (fields.length > 0) return;
+    ensureCustomTypeHasDefaultFields(typeSchema.id).catch(() => {});
+  }, [fields.length, typeSchema.id, typeSchema.isDefault]);
 
   return (
     <section className="rounded-lg border border-border bg-card">
