@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { db } from "@/lib/db";
+import { useEnsureUserProfile } from "@/lib/hooks/useEnsureUserProfile";
 
 const ALLOWED_DOMAIN = "matthews.com";
 
@@ -14,6 +15,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isLoading } = db.useAuth();
+  useEnsureUserProfile();
 
   useEffect(() => {
     if (isLoading) return;

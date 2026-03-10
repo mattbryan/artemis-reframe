@@ -300,6 +300,14 @@ const _schema = i.schema({
       createdAt: i.number(),
       updatedAt: i.number(),
     }),
+    /** User profiles for authenticated users. Standalone entity keyed by email. */
+    userProfile: i.entity({
+      email: i.string().unique().indexed(),
+      name: i.string().optional(),
+      role: i.string(), // "admin" | "editor"
+      createdAt: i.number(),
+      lastSeenAt: i.number(),
+    }),
   },
   links: {
     /** ExemplaryAsset ↔ Tag: many-to-many */
