@@ -19,3 +19,26 @@ export const db = init_experimental({
   appId,
   schema,
 });
+
+// #region agent log
+if (typeof window !== "undefined") {
+  fetch("http://127.0.0.1:7351/ingest/15b2fcf1-ad78-4521-8bd0-ab3a09601be4", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "db999b",
+    },
+    body: JSON.stringify({
+      sessionId: "db999b",
+      runId: "initial",
+      hypothesisId: "H1",
+      location: "lib/db.ts:24",
+      message: "InstantDB client initialized",
+      data: {
+        hasRealAppId: appId !== "placeholder-app-id",
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+}
+// #endregion

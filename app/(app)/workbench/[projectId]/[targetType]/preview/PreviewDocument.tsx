@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { PreviewCover } from "./PreviewCover";
 import { PreviewExclusivelyListedBy } from "./PreviewExclusivelyListedBy";
 import { PreviewTableOfContents } from "./PreviewTableOfContents";
@@ -35,7 +36,7 @@ interface PreviewDocumentProps {
   activeSectionId: string | null;
 }
 
-export function PreviewDocument({
+export const PreviewDocument = React.memo(function PreviewDocument({
   content,
   activeSectionId,
 }: PreviewDocumentProps) {
@@ -72,4 +73,4 @@ export function PreviewDocument({
       })}
     </div>
   );
-}
+});

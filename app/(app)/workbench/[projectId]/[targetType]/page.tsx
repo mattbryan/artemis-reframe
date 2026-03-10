@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/db";
 import { useEditorStore } from "@/store/editorStore";
@@ -245,8 +245,45 @@ export default function EditorPage() {
   const markSaved = useEditorStore((s) => s.markSaved);
 
   const outputId = output?.id ?? "";
-  const content = liveContent[outputId] ?? output?.editedContentJson ?? output?.contentJson;
-  const sections = content?.sections ?? [];
+  const content =
+    liveContent[outputId] ?? output?.editedContentJson ?? output?.contentJson;
+  const sections = useMemo(
+    () => content?.sections ?? [],
+    [content]
+  );
+
+  // #region agent log
+  if (typeof window !== "undefined") {
+    fetch("http://127.0.0.1:7351/ingest/15b2fcf1-ad78-4521-8bd0-ab3a09601be4", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "db999b",
+      },
+      body: JSON.stringify({
+        sessionId: "db999b",
+        runId: "initial",
+        hypothesisId: "H2",
+        location:
+          "app/(app)/workbench/[projectId]/[targetType]/page.tsx:247-253",
+        message: "EditorPage query + content state",
+        data: {
+          projectId,
+          targetType,
+          hasProjectId: !!projectId,
+          hasTargetTypeParam: !!targetTypeParam,
+          queryHasData: !!query.data,
+          outputsByProjectHasData: !!outputsByProjectQuery.data,
+          hasProject: !!project,
+          hasOutput: !!output,
+          hasContent: !!content,
+          sectionCount: sections.length,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }
+  // #endregion
 
   useEffect(() => {
     if (!outputId || !output) return;
@@ -389,10 +426,14 @@ export default function EditorPage() {
     );
   }
 
-  const sectionNames = sections.map((s) => ({
-    sectionId: s.sectionId,
-    sectionName: s.sectionName,
-  }));
+  const sectionNames = useMemo(
+    () =>
+      sections.map((s) => ({
+        sectionId: s.sectionId,
+        sectionName: s.sectionName,
+      })),
+    [sections]
+  );
 
   const isCoworkPackage = targetType === "cowork-package";
 

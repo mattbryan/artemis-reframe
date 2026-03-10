@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -62,7 +63,11 @@ const NAV_GROUPS = [
   },
 ] as const;
 
-export function Sidebar({ className }: { className?: string }) {
+export const Sidebar = React.memo(function Sidebar({
+  className,
+}: {
+  className?: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = db.useAuth();
@@ -174,4 +179,4 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
     </aside>
   );
-}
+});
