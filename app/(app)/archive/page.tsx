@@ -125,7 +125,7 @@ export default function ArchivePage() {
     if (approvalFilter === "approved") {
       list = list.filter((r) => r.approvalStatus === "approved");
     } else if (approvalFilter === "not_approved") {
-      list = list.filter((r) => r.approvalStatus !== "approved");
+      list = list.filter((r) => r.approvalStatus === "not_approved");
     }
     return [...list].sort((a, b) => {
       let cmp = 0;

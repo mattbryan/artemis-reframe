@@ -129,12 +129,12 @@ export function EditorToolbar({
     runApprove(false);
   }, [unsaved, runApprove]);
 
-  const handleSaveAndApprove = useCallback(() => {
+  const handleSaveAndApprove = useCallback(async () => {
     if (content) {
       markSaved(outputId);
-      runApprove(true);
+      await runApprove(true);
     } else {
-      runApprove(false);
+      await runApprove(false);
     }
     setApproveDialogOpen(false);
   }, [content, outputId, markSaved, runApprove]);

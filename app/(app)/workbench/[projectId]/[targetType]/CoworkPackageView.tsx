@@ -98,11 +98,7 @@ export function CoworkPackageView({ project, output }: CoworkPackageViewProps) {
       };
 
       const brandScreenshotUrls = await Promise.all(
-        brandScreenshots.map((s) =>
-          s.url?.startsWith("http")
-            ? s.url
-            : resolveUrl(s.url, s.url)
-        )
+        brandScreenshots.map((s) => s.url ?? "")
       );
       const briefScreenshotUrls = briefData?.screenshots
         ? await Promise.all(
