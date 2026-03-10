@@ -39,8 +39,8 @@ export async function seedCollateralDefaults(): Promise<void> {
       aiIntent:
         "When generating this collateral type, always lead with the investment thesis before property details. Present financial data with source citations. Use institutional tone throughout. Never describe projected returns as guaranteed.",
       outputTargets: outputTargets([
-        { targetType: "print-pdf", defaultBriefId: null, layoutNotes: "" },
-        { targetType: "web-html", defaultBriefId: null, layoutNotes: "" },
+        { targetType: "print-pdf", briefOptionIds: [], layoutNotes: "" },
+        { targetType: "web-html", briefOptionIds: [], layoutNotes: "" },
       ]),
       isDefault: true,
       isArchived: false,
@@ -196,7 +196,7 @@ export async function seedCollateralDefaults(): Promise<void> {
       aiIntent:
         "When generating this collateral type, always frame content from the perspective of advising the owner, not marketing to a buyer. The tone should be consultative and data-driven. Lead with the recommended value and support it with comps and market evidence.",
       outputTargets: outputTargets([
-        { targetType: "print-pdf", defaultBriefId: null, layoutNotes: "" },
+        { targetType: "print-pdf", briefOptionIds: [], layoutNotes: "" },
       ]),
       isDefault: true,
       isArchived: false,
@@ -331,7 +331,7 @@ export async function seedCollateralDefaults(): Promise<void> {
       aiIntent:
         "When generating this collateral type, keep copy extremely concise. One headline, one supporting line, one call to action. The image carries the visual weight — copy supports it, does not compete with it. Never include more than 3 lines of text in the composition.",
       outputTargets: outputTargets([
-        { targetType: "social-image", defaultBriefId: null, layoutNotes: "" },
+        { targetType: "social-image", briefOptionIds: [], layoutNotes: "" },
       ]),
       isDefault: true,
       isArchived: false,
@@ -402,7 +402,7 @@ export async function seedCollateralDefaults(): Promise<void> {
       aiIntent:
         "When generating this collateral type, write for a busy reader scanning on mobile. Subject line and preview text are critical — write these first. Body copy should be skimmable: short paragraphs, one idea per paragraph, clear CTA button. Never use background images in the email body — deliverability risk.",
       outputTargets: outputTargets([
-        { targetType: "email-html", defaultBriefId: null, layoutNotes: "" },
+        { targetType: "email-html", briefOptionIds: [], layoutNotes: "" },
       ]),
       isDefault: true,
       isArchived: false,

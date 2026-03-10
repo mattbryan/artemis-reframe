@@ -33,14 +33,14 @@ const NAV_GROUPS = [
     items: [
       { href: "/workbench", label: "Workbench", icon: LayoutDashboard },
       { href: "/archive", label: "Archive", icon: Archive },
-      { href: "/collateral-types", label: "Collateral Types", icon: Layout },
     ],
   },
   {
     label: "TRAIN",
     items: [
-      { href: "/brand", label: "Brand & Philosophy", icon: Palette },
+      { href: "/collateral-types", label: "Collateral Types", icon: Layout },
       { href: "/design-briefs", label: "Design Briefs", icon: FileText },
+      { href: "/brand", label: "Brand & Philosophy", icon: Palette },
       { href: "/policy", label: "Policy & Rules", icon: Scale },
     ],
   },

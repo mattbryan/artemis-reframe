@@ -26,14 +26,31 @@ export function parseOutputTargets(raw: string): OutputTargetDef[] {
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (x): x is OutputTargetDef =>
-        x != null &&
-        typeof x === "object" &&
-        OUTPUT_TARGET_TYPES.includes(x.targetType) &&
-        (x.defaultBriefId === null || typeof x.defaultBriefId === "string") &&
-        typeof x.layoutNotes === "string"
-    );
+    return parsed
+      .map((rawTarget): OutputTargetDef | null => {
+        if (!rawTarget || typeof rawTarget !== "object") return null;
+        const x = rawTarget as Record<string, unknown>;
+        if (!OUTPUT_TARGET_TYPES.includes(x.targetType as string)) return null;
+
+        // Migration for legacy records
+        const briefOptionIds = Array.isArray(x.briefOptionIds)
+          ? (x.briefOptionIds as unknown[]).filter(
+              (id) => typeof id === "string"
+            ) as string[]
+          : x.defaultBriefId && typeof x.defaultBriefId === "string"
+          ? [x.defaultBriefId]
+          : [];
+
+        const layoutNotes =
+          typeof x.layoutNotes === "string" ? x.layoutNotes : "";
+
+        return {
+          targetType: x.targetType as string,
+          briefOptionIds,
+          layoutNotes,
+        };
+      })
+      .filter((t): t is OutputTargetDef => t !== null);
   } catch {
     return [];
   }

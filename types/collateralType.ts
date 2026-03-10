@@ -15,7 +15,7 @@ export type OutputTargetType = (typeof OUTPUT_TARGET_TYPES)[number];
 
 export interface OutputTargetDef {
   targetType: OutputTargetType;
-  defaultBriefId: string | null;
+  briefOptionIds: string[];
   layoutNotes: string;
 }
 

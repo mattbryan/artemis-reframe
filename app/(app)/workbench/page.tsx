@@ -109,7 +109,10 @@ export default function WorkbenchPage() {
   }, [projectData]);
 
   const slugToResume = resumingProject?.collateralTypeSlug ?? null;
-  const { type: collateralTypeToResume } = useCollateralType(slugToResume);
+  const {
+    type: collateralTypeToResume,
+    isLoading: collateralTypeLoading,
+  } = useCollateralType(slugToResume);
 
   const hydrateFromDraft = useWizardStore((s) => s.hydrateFromDraft);
   const reset = useWizardStore((s) => s.reset);
@@ -137,6 +140,30 @@ export default function WorkbenchPage() {
     setResumingProject(null);
     setShowWizard(true);
   }, [resumingProject, collateralTypeToResume, hydrateFromDraft]);
+
+  useEffect(() => {
+    // If we tried to resume a draft but its collateral type cannot be found,
+    // avoid getting stuck on the "Loading draft…" screen forever.
+    // Instead, fall back to the read-only project view.
+    if (!resumingProject) return;
+    if (!slugToResume) return;
+    if (collateralTypeLoading) return;
+    if (!collateralTypeToResume) {
+      console.warn(
+        "[Workbench] Failed to load collateral type for draft project",
+        resumingProject.id,
+        "slug:",
+        slugToResume
+      );
+      router.push(`/workbench/${resumingProject.id}`);
+      setResumingProject(null);
+    }
+  }, [
+    resumingProject,
+    slugToResume,
+    collateralTypeLoading,
+    collateralTypeToResume,
+  ]);
 
   const onSaveDraft = async () => {
     const store = useWizardStore.getState();

@@ -460,12 +460,11 @@ export async function updateCollateralTypeOutputTargets(
 export async function addOutputTarget(
   typeId: string,
   targetType: OutputTargetType,
-  defaultBriefId: string | null = null,
   layoutNotes: string = ""
 ): Promise<void> {
   const targets = await getOutputTargets(typeId);
   if (targets.some((t) => t.targetType === targetType)) return;
-  targets.push({ targetType, defaultBriefId, layoutNotes });
+  targets.push({ targetType, briefOptionIds: [], layoutNotes });
   await updateCollateralTypeOutputTargets(typeId, targets);
 }
 
@@ -477,7 +476,7 @@ export async function removeOutputTarget(typeId: string, targetType: OutputTarge
 export async function updateOutputTarget(
   typeId: string,
   targetType: OutputTargetType,
-  updates: Partial<{ defaultBriefId: string | null; layoutNotes: string }>
+  updates: { briefOptionIds?: string[]; layoutNotes?: string }
 ): Promise<void> {
   const targets = await getOutputTargets(typeId);
   const idx = targets.findIndex((t) => t.targetType === targetType);
