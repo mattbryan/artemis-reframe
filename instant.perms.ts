@@ -65,6 +65,14 @@ const rules = {
       update: "true",
     },
   },
+  userProfile: {
+    allow: {
+      view: "true",
+      create: "true",
+      update: "true",
+      delete: "true",
+    },
+  },
 };
 
 export default rules;

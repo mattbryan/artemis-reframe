@@ -43,6 +43,15 @@ export function RuleTypeSection({ typeSchema }: RuleTypeSectionProps) {
     addRuleButtonRef.current?.focus();
   }, []);
 
+  // Must be computed and called before any early returns to satisfy Rules of Hooks.
+  const fields = getFieldsForSchema(typeSchema);
+
+  useEffect(() => {
+    if (typeSchema.isDefault) return;
+    if (fields.length > 0) return;
+    ensureCustomTypeHasDefaultFields(typeSchema.id).catch(() => {});
+  }, [fields.length, typeSchema.id, typeSchema.isDefault]);
+
   if (!typeSchema.isActive) {
     return (
       <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-4 py-3">
@@ -66,14 +75,6 @@ export function RuleTypeSection({ typeSchema }: RuleTypeSectionProps) {
       </div>
     );
   }
-
-  const fields = getFieldsForSchema(typeSchema);
-
-  useEffect(() => {
-    if (typeSchema.isDefault) return;
-    if (fields.length > 0) return;
-    ensureCustomTypeHasDefaultFields(typeSchema.id).catch(() => {});
-  }, [fields.length, typeSchema.id, typeSchema.isDefault]);
 
   return (
     <section className="rounded-lg border border-border bg-card">

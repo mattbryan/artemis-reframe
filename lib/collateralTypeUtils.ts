@@ -6,7 +6,7 @@ import {
   slugify as briefSlugify,
   ensureUniqueSlug as briefEnsureUniqueSlug,
 } from "@/lib/briefUtils";
-import type { OutputTargetDef, FieldDef } from "@/types/collateralType";
+import type { OutputTargetDef, FieldDef, OutputTargetType } from "@/types/collateralType";
 import { OUTPUT_TARGET_TYPES } from "@/types/collateralType";
 
 export const slugify = briefSlugify;
@@ -30,7 +30,7 @@ export function parseOutputTargets(raw: string): OutputTargetDef[] {
       .map((rawTarget): OutputTargetDef | null => {
         if (!rawTarget || typeof rawTarget !== "object") return null;
         const x = rawTarget as Record<string, unknown>;
-        if (!OUTPUT_TARGET_TYPES.includes(x.targetType as string)) return null;
+        if (!OUTPUT_TARGET_TYPES.includes(x.targetType as OutputTargetType)) return null;
 
         // Migration for legacy records
         const briefOptionIds = Array.isArray(x.briefOptionIds)
@@ -45,7 +45,7 @@ export function parseOutputTargets(raw: string): OutputTargetDef[] {
           typeof x.layoutNotes === "string" ? x.layoutNotes : "";
 
         return {
-          targetType: x.targetType as string,
+          targetType: x.targetType as OutputTargetType,
           briefOptionIds,
           layoutNotes,
         };

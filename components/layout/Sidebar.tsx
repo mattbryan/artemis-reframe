@@ -16,6 +16,7 @@ import {
   Bug,
   Bell,
   LogOut,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ReframeLogo } from "./ReframeLogo";
@@ -51,6 +52,12 @@ const NAV_GROUPS = [
       { href: "/train/tag-manager", label: "Tag Manager", icon: Tags },
       { href: "/feed/proprietary-intel", label: "Proprietary Intel", icon: FileText },
       { href: "/feed/api-integrations", label: "API & Integrations", icon: Plug },
+    ],
+  },
+  {
+    label: "ADMIN",
+    items: [
+      { href: "/admin/users", label: "Users", icon: Users },
     ],
   },
 ] as const;
